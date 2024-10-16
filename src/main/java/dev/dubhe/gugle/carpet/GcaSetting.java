@@ -66,11 +66,11 @@ public class GcaSetting {
     )
     public static String fakePlayerSuffixName = fakePlayerNoneName;
 
-//    // 方便快捷的假人管理菜单
-//    @Rule(
-//            categories = {GCA, EXPERIMENTAL, BOT}
-//    )
-//    public static boolean commandBot = false;
+    // 方便快捷的假人管理菜单
+    @Rule(
+            categories = {GCA, EXPERIMENTAL, BOT}
+    )
+    public static boolean commandBot = false;
 
     // 让放置的栅栏门与你点击的栅栏门拥有相同的方块状态
     @Rule(
