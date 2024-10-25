@@ -7,12 +7,16 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.brigadier.CommandDispatcher;
 import dev.dubhe.gugle.carpet.api.Consumer;
 import dev.dubhe.gugle.carpet.api.tools.text.ComponentTranslate;
+import dev.dubhe.gugle.carpet.commands.BotCommand;
 import dev.dubhe.gugle.carpet.tools.FakePlayerEnderChestContainer;
 import dev.dubhe.gugle.carpet.tools.FakePlayerInventoryContainer;
 import dev.dubhe.gugle.carpet.tools.FakePlayerResident;
 import net.fabricmc.api.ModInitializer;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -45,14 +49,17 @@ public class GcaExtension implements CarpetExtension, ModInitializer {
     }
 
     public static final HashMap<Player, Map.Entry<FakePlayerInventoryContainer, FakePlayerEnderChestContainer>> fakePlayerInventoryContainerMap = new HashMap<>();
+    public static final HashMap<String, java.util.function.Consumer<ServerPlayer>> ON_PLAYER_LOGGED_IN = new HashMap<>();
 
     public static final List<Map.Entry<Long, Consumer>> planFunction = new ArrayList<>();
 
     @Override
     public void onPlayerLoggedIn(ServerPlayer player) {
         GcaExtension.fakePlayerInventoryContainerMap.put(player, Map.entry(
-                new FakePlayerInventoryContainer(player), new FakePlayerEnderChestContainer(player)
+            new FakePlayerInventoryContainer(player), new FakePlayerEnderChestContainer(player)
         ));
+        java.util.function.Consumer<ServerPlayer> consumer = ON_PLAYER_LOGGED_IN.remove(player.getGameProfile().getName());
+        if (consumer != null) consumer.accept(player);
     }
 
     @Override
@@ -63,6 +70,7 @@ public class GcaExtension implements CarpetExtension, ModInitializer {
     @Override
     public void onGameStarted() {
         CarpetServer.settingsManager.parseSettingsClass(GcaSetting.class);
+        BotCommand.init(CarpetServer.minecraft_server);
     }
 
     @Override
@@ -103,6 +111,11 @@ public class GcaExtension implements CarpetExtension, ModInitializer {
             }
             file.delete();
         }
+    }
+
+    @Override
+    public void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext commandBuildContext) {
+        BotCommand.register(dispatcher);
     }
 
     @Override
