@@ -37,6 +37,7 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
@@ -218,13 +219,14 @@ public class BotCommand {
     private static int addBot(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         BotCommand.init(context);
         CommandSourceStack source = context.getSource();
-        if (!(EntityArgument.getEntity(context, "player") instanceof EntityPlayerMPFake player)) {
-            source.sendFailure(Component.literal("%s is not a fake player."));
+        ServerPlayer p;
+        if (!((p = EntityArgument.getPlayer(context, "player")) instanceof EntityPlayerMPFake player)) {
+            source.sendFailure(Component.literal("%s is not a fake player.".formatted(p.getGameProfile().getName())));
             return 0;
         }
         String name = player.getGameProfile().getName();
         if (BOT_INFO_MAP.containsKey(name)) {
-            source.sendFailure(Component.literal("%s is already save."));
+            source.sendFailure(Component.literal("%s is already save.".formatted(name)));
             return 0;
         }
         BotCommand.BOT_INFO_MAP.put(
