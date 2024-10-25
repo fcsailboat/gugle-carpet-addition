@@ -12,6 +12,7 @@ import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.google.gson.annotations.SerializedName;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -293,7 +294,7 @@ public class BotCommand {
         String desc,
         Vec3 pos,
         Vec2 facing,
-        ResourceKey<Level> dimType,
+        @SerializedName("dim_type") ResourceKey<Level> dimType,
         GameType mode,
         boolean flying,
         JsonObject actions
