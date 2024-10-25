@@ -165,7 +165,15 @@ public class BotCommand {
                 .applyFormat(ChatFormatting.RED)
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/player %s kill".formatted(botInfo.name)))
         );
-        return Component.literal("▶ ").append(component).append(" ").append(load).append(" ").append(remove);
+        MutableComponent delete = Component.literal("[\uD83D\uDDD1]").withStyle(
+            Style.EMPTY
+                .applyFormat(ChatFormatting.RED)
+                .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/bot remove %s".formatted(botInfo.name)))
+        );
+        return Component.literal("▶ ").append(component)
+            .append(" ").append(load)
+            .append(" ").append(remove)
+            .append(" ").append(delete);
     }
 
     private static int loadBot(CommandContext<CommandSourceStack> context) {
@@ -240,7 +248,7 @@ public class BotCommand {
         String name = StringArgumentType.getString(context, "player");
         BotCommand.BOT_INFO_MAP.remove(name);
         CommandSourceStack source = context.getSource();
-        source.sendSuccess(() -> Component.literal("%s is removed."), false);
+        source.sendSuccess(() -> Component.literal("%s is removed.".formatted(name)), false);
         BotCommand.save();
         return 1;
     }
