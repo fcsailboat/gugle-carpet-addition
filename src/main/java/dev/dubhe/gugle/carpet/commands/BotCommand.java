@@ -240,6 +240,7 @@ public class BotCommand {
             )
         );
         BotCommand.save();
+        source.sendSuccess(() -> Component.literal("%s is added.".formatted(name)), false);
         return 1;
     }
 
