@@ -62,6 +62,15 @@
   "carpet.rule.commandWhereis.name": "/whereis Command",
   "carpet.rule.commandWhereis.desc": "Quickly locate players",
 
+  "carpet.rule.commandWlist.name": "Whitelist Management",
+  "carpet.rule.commandWlist.desc": "Whitelist Management",
+
+  "carpet.rule.commandBlist.name": "Banned List Management",
+  "carpet.rule.commandBlist.desc": "Banned List Management",
+
+  "carpet.rule.commandSop.name": "Simple op get",
+  "carpet.rule.commandSop.desc": "Simple op get",
+
   "gca.action.attack.interval.12": "間隔 12 gt攻擊：%s",
   "gca.action.attack.continuous": "連續攻擊：%s",
   "gca.action.use.continuous": "連續使用：%s",

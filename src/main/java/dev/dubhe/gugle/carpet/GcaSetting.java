@@ -108,6 +108,24 @@ public class GcaSetting {
     )
     public static String commandLoc = "ops";
 
+    // 白名单管理
+    @Rule(
+        categories = {GCA, EXPERIMENTAL, BOT, COMMAND}
+    )
+    public static boolean commandWlist = false;
+
+    // 封禁名单管理
+    @Rule(
+        categories = {GCA, EXPERIMENTAL, BOT, COMMAND}
+    )
+    public static boolean commandBlist = false;
+
+    // 简单获取op
+    @Rule(
+        categories = {GCA, EXPERIMENTAL, BOT, COMMAND}
+    )
+    public static boolean commandSop = false;
+
     // 让放置的栅栏门与你点击的栅栏门拥有相同的方块状态
     @Rule(
         categories = {GCA, EXPERIMENTAL}

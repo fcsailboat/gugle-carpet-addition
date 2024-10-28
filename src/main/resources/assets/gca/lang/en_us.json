@@ -56,6 +56,15 @@
   "carpet.rule.commandTodo.name": "Todo Management",
   "carpet.rule.commandTodo.desc": "A Todo Management Menu",
 
+  "carpet.rule.commandWlist.name": "Whitelist Management",
+  "carpet.rule.commandWlist.desc": "Whitelist Management",
+
+  "carpet.rule.commandBlist.name": "Banned List Management",
+  "carpet.rule.commandBlist.desc": "Banned List Management",
+
+  "carpet.rule.commandSop.name": "Simple op get",
+  "carpet.rule.commandSop.desc": "Simple op get",
+
   "carpet.rule.commandHere.name": "/here Command",
   "carpet.rule.commandHere.desc": "Quickly send position",
 
