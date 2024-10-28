@@ -187,6 +187,23 @@ public class LocCommand {
                 )
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(locPoint.dimType.location().toString())))
         );
+        double scale = 0;
+        if (locPoint.dimType == Level.NETHER) {
+            scale = 8;
+        } else if (locPoint.dimType == Level.OVERWORLD) {
+            scale = 0.125;
+        }
+        MutableComponent toPos = Component.literal("[%.2f, %.2f, %.2f]".formatted(locPoint.x * scale, locPoint.y * scale, locPoint.z * scale)).withStyle(
+            Style.EMPTY
+                .applyFormat(
+                    locPoint.dimType == Level.OVERWORLD ?
+                        ChatFormatting.RED :
+                        locPoint.dimType == Level.NETHER ?
+                            ChatFormatting.GREEN :
+                            ChatFormatting.AQUA
+                )
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(locPoint.dimType.location().toString())))
+        );
         MutableComponent addMap = Component.literal("[+X]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.GREEN)
@@ -208,8 +225,10 @@ public class LocCommand {
                 .applyFormat(ChatFormatting.RED)
                 .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/loc remove %s".formatted(locPoint.id)))
         );
-        return Component.literal("▶ ").append(component)
-            .append(" ").append(pos)
+        MutableComponent component1 = Component.literal("▶ ").append(component)
+            .append(" ").append(pos);
+        if (scale > 0) component1.append("->").append(toPos);
+        return component1
             .append(" ").append(addMap)
             .append(" ").append(remove);
     }

@@ -58,6 +58,23 @@ public class HereCommand {
                 )
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(dimension.location().toString())))
         );
+        double scale = 0;
+        if (dimension == Level.NETHER) {
+            scale = 8;
+        } else if (dimension == Level.OVERWORLD) {
+            scale = 0.125;
+        }
+        MutableComponent toPos = Component.literal("[%.2f, %.2f, %.2f]".formatted(position.x * scale, position.y * scale, position.z * scale)).withStyle(
+            Style.EMPTY
+                .applyFormat(
+                    dimension == Level.OVERWORLD ?
+                        ChatFormatting.RED :
+                        dimension == Level.NETHER ?
+                            ChatFormatting.GREEN :
+                            ChatFormatting.AQUA
+                )
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(dimension.location().toString())))
+        );
         MutableComponent addMap = Component.literal("[+X]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.GREEN)
@@ -74,8 +91,8 @@ public class HereCommand {
                     )
                 ))
         );
-        return Component.literal("%s at".formatted(name))
-            .append(" ").append(pos)
-            .append(" ").append(addMap);
+        MutableComponent component = Component.literal("%s at".formatted(name)).append(" ").append(pos);
+        if (scale > 0) component.append("->").append(toPos);
+        return component.append(" ").append(addMap);
     }
 }
