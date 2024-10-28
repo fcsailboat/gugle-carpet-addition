@@ -15,6 +15,8 @@ import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -28,7 +30,7 @@ public class HereCommand {
         );
     }
 
-    public static int execute(CommandContext<CommandSourceStack> context) {
+    public static int execute(@NotNull CommandContext<CommandSourceStack> context) {
         MinecraftServer server = context.getSource().getServer();
         CommandSourceStack source = context.getSource();
         if (!source.isPlayer()) return 0;
@@ -38,7 +40,8 @@ public class HereCommand {
         return 1;
     }
 
-    public static MutableComponent playerPos(ServerPlayer player) {
+    public static @NotNull MutableComponent playerPos(@NotNull ServerPlayer player) {
+        player.addEffect(new MobEffectInstance(MobEffects.GLOWING, 200, 0, true, false));
         Vec3 position = player.position();
         ResourceKey<Level> dimension = player.level().dimension();
         String name = player.getGameProfile().getName();
