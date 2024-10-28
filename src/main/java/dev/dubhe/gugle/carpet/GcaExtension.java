@@ -11,6 +11,11 @@ import com.mojang.brigadier.CommandDispatcher;
 import dev.dubhe.gugle.carpet.api.Consumer;
 import dev.dubhe.gugle.carpet.api.tools.text.ComponentTranslate;
 import dev.dubhe.gugle.carpet.commands.BotCommand;
+import dev.dubhe.gugle.carpet.commands.HereCommand;
+import dev.dubhe.gugle.carpet.commands.LocCommand;
+import dev.dubhe.gugle.carpet.commands.TodoCommand;
+import dev.dubhe.gugle.carpet.commands.WhereisCommand;
+import dev.dubhe.gugle.carpet.tools.DimTypeSerializer;
 import dev.dubhe.gugle.carpet.tools.FakePlayerEnderChestContainer;
 import dev.dubhe.gugle.carpet.tools.FakePlayerInventoryContainer;
 import dev.dubhe.gugle.carpet.tools.FakePlayerResident;
@@ -18,6 +23,7 @@ import net.fabricmc.api.ModInitializer;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -40,7 +46,10 @@ import java.util.Map;
 
 @SuppressWarnings("unused")
 public class GcaExtension implements CarpetExtension, ModInitializer {
-    public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    public static final Gson GSON = new GsonBuilder()
+        .setPrettyPrinting()
+        .registerTypeHierarchyAdapter(ResourceKey.class, new DimTypeSerializer())
+        .create();
     public static String MOD_ID = "gca";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
@@ -70,7 +79,7 @@ public class GcaExtension implements CarpetExtension, ModInitializer {
     @Override
     public void onGameStarted() {
         CarpetServer.settingsManager.parseSettingsClass(GcaSetting.class);
-        BotCommand.init(CarpetServer.minecraft_server);
+        BotCommand.BOT_INFO.init(CarpetServer.minecraft_server);
     }
 
     @Override
@@ -109,6 +118,7 @@ public class GcaExtension implements CarpetExtension, ModInitializer {
             } catch (IOException e) {
                 GcaExtension.LOGGER.error(e.getMessage(), e);
             }
+            //noinspection ResultOfMethodCallIgnored
             file.delete();
         }
     }
@@ -116,6 +126,10 @@ public class GcaExtension implements CarpetExtension, ModInitializer {
     @Override
     public void registerCommands(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext commandBuildContext) {
         BotCommand.register(dispatcher);
+        LocCommand.register(dispatcher);
+        HereCommand.register(dispatcher);
+        WhereisCommand.register(dispatcher);
+        TodoCommand.register(dispatcher);
     }
 
     @Override

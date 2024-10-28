@@ -36,6 +36,10 @@ dependencies {
 
     // fabric-carpet
     modImplementation("curse.maven:carpet-349239:${project.carpet_core_version}")
+    // xaeromap
+    // modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    // modImplementation("curse.maven:xaeros-world-map-317780:5658242")
+    // modImplementation("curse.maven:xaeros-mini-map-263420:5437650")
 }
 
 processResources {

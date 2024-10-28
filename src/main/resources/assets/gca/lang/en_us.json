@@ -50,6 +50,18 @@
   "carpet.rule.commandBot.name": "Bot Management",
   "carpet.rule.commandBot.desc": "A Bot Management Menu",
 
+  "carpet.rule.commandLoc.name": "Loc Management",
+  "carpet.rule.commandLoc.desc": "A Loc Management Menu",
+
+  "carpet.rule.commandTodo.name": "Todo Management",
+  "carpet.rule.commandTodo.desc": "A Todo Management Menu",
+
+  "carpet.rule.commandHere.name": "/here Command",
+  "carpet.rule.commandHere.desc": "Quickly send position",
+
+  "carpet.rule.commandWhereis.name": "/whereis Command",
+  "carpet.rule.commandWhereis.desc": "Quickly locate players",
+
   "gca.action.attack.interval.12": "Attack every 12 gt: %s",
   "gca.action.attack.continuous": "Attack continuous: %s",
   "gca.action.use.continuous": "Use continuous: %s",

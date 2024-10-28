@@ -50,6 +50,18 @@
   "carpet.rule.commandBot.name": "假人管理",
   "carpet.rule.commandBot.desc": "一个假人管理菜单",
 
+  "carpet.rule.commandLoc.name": "地标管理",
+  "carpet.rule.commandLoc.desc": "地标管理菜单",
+
+  "carpet.rule.commandTodo.name": "待办事项管理",
+  "carpet.rule.commandTodo.desc": "待办事项管理菜单",
+
+  "carpet.rule.commandHere.name": "/here 命令",
+  "carpet.rule.commandHere.desc": "快速发送位置",
+
+  "carpet.rule.commandWhereis.name": "/whereis 命令",
+  "carpet.rule.commandWhereis.desc": "快速定位玩家",
+
   "gca.action.attack.interval.12": "间隔 12 gt攻击：%s",
   "gca.action.attack.continuous": "一直左键： %s",
   "gca.action.use.continuous": "一直右键：%s",

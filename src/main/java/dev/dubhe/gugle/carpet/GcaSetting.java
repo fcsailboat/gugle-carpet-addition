@@ -1,12 +1,14 @@
 package dev.dubhe.gugle.carpet;
 
 import carpet.api.settings.Rule;
+import carpet.api.settings.Validators;
 
 public class GcaSetting {
 
     public static final String GCA = "GCA";
     public static final String EXPERIMENTAL = "experimental";
     public static final String BOT = "BOT";
+    public static final String COMMAND = "command";
 
     // 允许玩家打开假人背包
     @Rule(
@@ -68,9 +70,43 @@ public class GcaSetting {
 
     // 方便快捷的假人管理菜单
     @Rule(
-            categories = {GCA, EXPERIMENTAL, BOT}
+        categories = {GCA, EXPERIMENTAL, BOT, COMMAND},
+        options = {"ops", "0", "1", "2", "3", "4", "true", "false"},
+        validators = Validators.CommandLevel.class
     )
-    public static boolean commandBot = false;
+    public static String commandBot = "ops";
+
+    // 待办事项清单
+    @Rule(
+        categories = {GCA, EXPERIMENTAL, BOT, COMMAND},
+        options = {"ops", "0", "1", "2", "3", "4", "true", "false"},
+        validators = Validators.CommandLevel.class
+    )
+    public static String commandTodo = "ops";
+
+    // 快速发送坐标
+    @Rule(
+        categories = {GCA, EXPERIMENTAL, BOT, COMMAND},
+        options = {"ops", "0", "1", "2", "3", "4", "true", "false"},
+        validators = Validators.CommandLevel.class
+    )
+    public static String commandHere = "ops";
+
+    // 快速定位玩家
+    @Rule(
+        categories = {GCA, EXPERIMENTAL, BOT, COMMAND},
+        options = {"ops", "0", "1", "2", "3", "4", "true", "false"},
+        validators = Validators.CommandLevel.class
+    )
+    public static String commandWhereis = "ops";
+
+    // 地标管理菜单
+    @Rule(
+        categories = {GCA, EXPERIMENTAL, BOT, COMMAND},
+        options = {"ops", "0", "1", "2", "3", "4", "true", "false"},
+        validators = Validators.CommandLevel.class
+    )
+    public static String commandLoc = "ops";
 
     // 让放置的栅栏门与你点击的栅栏门拥有相同的方块状态
     @Rule(
