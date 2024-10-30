@@ -157,7 +157,7 @@ public class BotCommand {
         BOT_INFO.init(context);
         CommandSourceStack source = context.getSource();
         String name = StringArgumentType.getString(context, "player");
-        if (FilesUtil.server.getPlayerList().getPlayerByName(name) != null) {
+        if (BOT_INFO.server.getPlayerList().getPlayerByName(name) != null) {
             source.sendFailure(Component.literal("player %s is already exist.".formatted(name)));
             return 0;
         }
@@ -168,7 +168,7 @@ public class BotCommand {
         }
         boolean success = EntityPlayerMPFake.createFake(
             name,
-            FilesUtil.server,
+            BOT_INFO.server,
             botInfo.pos,
             botInfo.facing.y,
             botInfo.facing.x,

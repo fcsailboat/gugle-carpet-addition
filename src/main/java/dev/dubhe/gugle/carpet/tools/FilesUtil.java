@@ -21,12 +21,12 @@ import java.util.TreeMap;
 import java.util.function.Function;
 
 public class FilesUtil<K extends Comparable<K>, V> {
-    public final Map<K, V> map = new TreeMap<>();
-    public static MinecraftServer server = null;
-    private final String gcaJson;
     private static final Gson GSON = GcaExtension.GSON;
-    Function<String, K> keyCodec;
-    Class<V> vClass;
+    public MinecraftServer server = null;
+    public final Map<K, V> map = new TreeMap<>();
+    private final String gcaJson;
+    private final Function<String, K> keyCodec;
+    private final Class<V> vClass;
 
     public FilesUtil(String jsonPrefix, Function<String, K> keyCodec, Class<V> vClass) {
         this.gcaJson = "%s.gca.json".formatted(jsonPrefix);
@@ -41,9 +41,9 @@ public class FilesUtil<K extends Comparable<K>, V> {
 
     public void init(MinecraftServer server1) {
         if (server1 == server) return;
-        FilesUtil.server = server1;
+        this.server = server1;
         this.map.clear();
-        File file = FilesUtil.server.getWorldPath(LevelResource.ROOT).resolve(this.gcaJson).toFile();
+        File file = this.server.getWorldPath(LevelResource.ROOT).resolve(this.gcaJson).toFile();
         if (!file.isFile()) return;
         try (BufferedReader bfr = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
             for (Map.Entry<String, JsonElement> entry : FilesUtil.GSON.fromJson(bfr, JsonObject.class).entrySet()) {
@@ -55,8 +55,8 @@ public class FilesUtil<K extends Comparable<K>, V> {
     }
 
     public void save() {
-        if (FilesUtil.server == null) return;
-        File file = FilesUtil.server.getWorldPath(LevelResource.ROOT).resolve(this.gcaJson).toFile();
+        if (this.server == null) return;
+        File file = this.server.getWorldPath(LevelResource.ROOT).resolve(this.gcaJson).toFile();
         try (BufferedWriter bw = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
             FilesUtil.GSON.toJson(this.map, bw);
         } catch (IOException e) {
