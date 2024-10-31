@@ -59,10 +59,13 @@ public class HereCommand {
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(dimension.location().toString())))
         );
         double scale = 0;
+        ResourceKey<Level> toDimType = Level.END;
         if (dimension == Level.NETHER) {
             scale = 8;
+            toDimType = Level.OVERWORLD;
         } else if (dimension == Level.OVERWORLD) {
             scale = 0.125;
+            toDimType = Level.NETHER;
         }
         MutableComponent toPos = Component.literal("[%.2f, %.2f, %.2f]".formatted(position.x * scale, position.y * scale, position.z * scale)).withStyle(
             Style.EMPTY
@@ -73,7 +76,7 @@ public class HereCommand {
                             ChatFormatting.GREEN :
                             ChatFormatting.AQUA
                 )
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(dimension.location().toString())))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(toDimType.location().toString())))
         );
         MutableComponent addMap = Component.literal("[+X]").withStyle(
             Style.EMPTY

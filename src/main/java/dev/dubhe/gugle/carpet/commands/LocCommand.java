@@ -188,10 +188,13 @@ public class LocCommand {
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(locPoint.dimType.location().toString())))
         );
         double scale = 0;
+        ResourceKey<Level> toDimType = Level.END;
         if (locPoint.dimType == Level.NETHER) {
             scale = 8;
+            toDimType = Level.OVERWORLD;
         } else if (locPoint.dimType == Level.OVERWORLD) {
             scale = 0.125;
+            toDimType = Level.NETHER;
         }
         MutableComponent toPos = Component.literal("[%.2f, %.2f, %.2f]".formatted(locPoint.x * scale, locPoint.y * scale, locPoint.z * scale)).withStyle(
             Style.EMPTY
@@ -202,7 +205,7 @@ public class LocCommand {
                             ChatFormatting.GREEN :
                             ChatFormatting.AQUA
                 )
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(locPoint.dimType.location().toString())))
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(toDimType.location().toString())))
         );
         MutableComponent addMap = Component.literal("[+X]").withStyle(
             Style.EMPTY
