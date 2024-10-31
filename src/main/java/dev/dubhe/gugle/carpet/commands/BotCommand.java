@@ -132,7 +132,7 @@ public class BotCommand {
     }
 
     private static MutableComponent botToComponent(BotInfo botInfo) {
-        MutableComponent component = Component.literal(botInfo.desc).withStyle(
+        MutableComponent desc = Component.literal(botInfo.desc).withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.GRAY)
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(botInfo.name)))
@@ -152,12 +152,19 @@ public class BotCommand {
         MutableComponent delete = Component.literal("[\uD83D\uDDD1]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Remove bot")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/bot remove %s".formatted(botInfo.name)))
         );
-        return Component.literal("▶ ").append(component)
-            .append(" ").append(load)
-            .append(" ").append(remove)
-            .append(" ").append(delete);
+        boolean notOnline = BOT_INFO.server.getPlayerList().getPlayerByName(botInfo.name) == null;
+        MutableComponent component = Component.literal("▶ ")
+            .withStyle(notOnline ? ChatFormatting.RED : ChatFormatting.GREEN)
+            .append(desc);
+        if (notOnline) {
+            component.append(" ").append(load);
+        } else {
+            component.append(" ").append(remove);
+        }
+        return component.append(" ").append(delete);
     }
 
     private static int load(CommandContext<CommandSourceStack> context) {
