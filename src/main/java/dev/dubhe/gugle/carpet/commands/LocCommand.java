@@ -270,7 +270,7 @@ public class LocCommand {
             scale = 0.125;
             toDimension = Level.NETHER;
         }
-        MutableComponent toPos = Component.literal("[%.2f, %.2f, %.2f]".formatted(x * scale, y * scale, z * scale)).withStyle(
+        MutableComponent toPos = Component.literal("[%.2f, %.2f, %.2f]".formatted(x * scale, y, z * scale)).withStyle(
             Style.EMPTY
                 .applyFormat(
                     dimension == Level.OVERWORLD ?
@@ -282,7 +282,7 @@ public class LocCommand {
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(toDimension.location().toString())))
         );
         return scale > 0 ?
-            List.of(pos, xaero(desc, x, y, z, dimension), toPos, xaero(desc, x * scale, y * scale, z * scale, toDimension)) :
+            List.of(pos, xaero(desc, x, y, z, dimension), toPos, xaero(desc, x * scale, y, z * scale, toDimension)) :
             List.of(pos, xaero(desc, x, y, z, dimension));
     }
 
