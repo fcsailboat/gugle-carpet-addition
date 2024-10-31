@@ -42,11 +42,12 @@ public class BotCommand {
     public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("bot")
             .requires(stack -> CommandHelper.canUseCommand(stack, GcaSetting.commandBot))
+            .executes(BotCommand::list)
             .then(
-                Commands.literal("list").executes(BotCommand::listBot)
+                Commands.literal("list").executes(BotCommand::list)
                     .then(
                         Commands.argument("page", IntegerArgumentType.integer(1))
-                            .executes(BotCommand::listBot)
+                            .executes(BotCommand::list)
                     )
             )
             .then(
@@ -55,7 +56,7 @@ public class BotCommand {
                         Commands.argument("player", EntityArgument.player())
                             .then(
                                 Commands.argument("desc", StringArgumentType.greedyString())
-                                    .executes(BotCommand::addBot)
+                                    .executes(BotCommand::add)
                             )
                     )
             )
@@ -64,7 +65,7 @@ public class BotCommand {
                     .then(
                         Commands.argument("player", StringArgumentType.string())
                             .suggests(BotCommand::suggestPlayer)
-                            .executes(BotCommand::loadBot)
+                            .executes(BotCommand::load)
                     )
             )
             .then(
@@ -72,13 +73,13 @@ public class BotCommand {
                     .then(
                         Commands.argument("player", StringArgumentType.string())
                             .suggests(BotCommand::suggestPlayer)
-                            .executes(BotCommand::removeBot)
+                            .executes(BotCommand::remove)
                     )
             )
         );
     }
 
-    private static int listBot(CommandContext<CommandSourceStack> context) {
+    private static int list(CommandContext<CommandSourceStack> context) {
         BOT_INFO.init(context);
         int page;
         try {
@@ -89,6 +90,10 @@ public class BotCommand {
         final int pageSize = 8;
         int size = BOT_INFO.map.size();
         int maxPage = size / pageSize + 1;
+        if (page > maxPage) {
+            context.getSource().sendFailure(Component.literal("No such page %s".formatted(page)));
+            return 0;
+        }
         BotInfo[] botInfos = BOT_INFO.map.values().toArray(new BotInfo[0]);
         context.getSource().sendSystemMessage(
             Component.literal("======= Bot List (Page %s/%s) =======".formatted(page, maxPage))
@@ -135,11 +140,13 @@ public class BotCommand {
         MutableComponent load = Component.literal("[↑]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.GREEN)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Load bot")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/bot load %s".formatted(botInfo.name)))
         );
         MutableComponent remove = Component.literal("[↓]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Unload bot")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/player %s kill".formatted(botInfo.name)))
         );
         MutableComponent delete = Component.literal("[\uD83D\uDDD1]").withStyle(
@@ -153,7 +160,7 @@ public class BotCommand {
             .append(" ").append(delete);
     }
 
-    private static int loadBot(CommandContext<CommandSourceStack> context) {
+    private static int load(CommandContext<CommandSourceStack> context) {
         BOT_INFO.init(context);
         CommandSourceStack source = context.getSource();
         String name = StringArgumentType.getString(context, "player");
@@ -183,7 +190,6 @@ public class BotCommand {
                     (player) -> FakePlayerSerializer.applyActionPackFromJson(botInfo.actions, player)
                 );
             }
-            source.sendSuccess(() -> Component.literal("%s is loaded.".formatted(name)), false);
             return 1;
         } else {
             source.sendFailure(Component.literal("%s is not loaded.".formatted(name)));
@@ -191,7 +197,7 @@ public class BotCommand {
         }
     }
 
-    private static int addBot(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+    private static int add(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         BOT_INFO.init(context);
         CommandSourceStack source = context.getSource();
         ServerPlayer p;
@@ -222,7 +228,7 @@ public class BotCommand {
         return 1;
     }
 
-    private static int removeBot(CommandContext<CommandSourceStack> context) {
+    private static int remove(CommandContext<CommandSourceStack> context) {
         BOT_INFO.init(context);
         String name = StringArgumentType.getString(context, "player");
         BotInfo remove = BotCommand.BOT_INFO.map.remove(name);

@@ -29,7 +29,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class LocCommand {
@@ -61,6 +64,14 @@ public class LocCommand {
                             Commands.argument("id", LongArgumentType.longArg())
                                 .suggests(LocCommand::suggestId)
                                 .executes(LocCommand::remove)
+                        )
+                )
+                .then(
+                    Commands.literal("info")
+                        .then(
+                            Commands.argument("id", LongArgumentType.longArg())
+                                .suggests(LocCommand::suggestId)
+                                .executes(LocCommand::info)
                         )
                 )
                 .then(
@@ -131,6 +142,10 @@ public class LocCommand {
         final int pageSize = 8;
         int size = LOC_POINT.map.size();
         int maxPage = size / pageSize + 1;
+        if (page > maxPage) {
+            context.getSource().sendFailure(Component.literal("No such page %s".formatted(page)));
+            return 0;
+        }
         LocPoint[] locPoints = LOC_POINT.map.values().toArray(new LocPoint[0]);
         context.getSource().sendSystemMessage(
             Component.literal("======= Loc List (Page %s/%s) =======".formatted(page, maxPage))
@@ -168,72 +183,125 @@ public class LocCommand {
         return 1;
     }
 
-    private static @NotNull MutableComponent locToComponent(LocPoint locPoint) {
+    private static @NotNull MutableComponent locToComponent(@NotNull LocPoint locPoint) {
         MutableComponent component = Component.literal(locPoint.desc).withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.GRAY)
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(Long.toString(locPoint.id))))
         );
-        MutableComponent pos = Component.literal("[%.2f, %.2f, %.2f]".formatted(locPoint.x, locPoint.y, locPoint.z)).withStyle(
+        List<MutableComponent> pos = LocCommand.pos(locPoint.desc, locPoint.x, locPoint.y, locPoint.z, locPoint.dimType);
+        MutableComponent info = Component.literal("[i]").withStyle(
             Style.EMPTY
-                .applyFormat(
-                    locPoint.dimType == Level.OVERWORLD ?
-                        ChatFormatting.GREEN :
-                        locPoint.dimType == Level.NETHER ?
-                            ChatFormatting.RED :
-                            locPoint.dimType == Level.END ?
-                                ChatFormatting.LIGHT_PURPLE :
-                                ChatFormatting.AQUA
-                )
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(locPoint.dimType.location().toString())))
-        );
-        double scale = 0;
-        ResourceKey<Level> toDimType = Level.END;
-        if (locPoint.dimType == Level.NETHER) {
-            scale = 8;
-            toDimType = Level.OVERWORLD;
-        } else if (locPoint.dimType == Level.OVERWORLD) {
-            scale = 0.125;
-            toDimType = Level.NETHER;
-        }
-        MutableComponent toPos = Component.literal("[%.2f, %.2f, %.2f]".formatted(locPoint.x * scale, locPoint.y * scale, locPoint.z * scale)).withStyle(
-            Style.EMPTY
-                .applyFormat(
-                    locPoint.dimType == Level.OVERWORLD ?
-                        ChatFormatting.RED :
-                        locPoint.dimType == Level.NETHER ?
-                            ChatFormatting.GREEN :
-                            ChatFormatting.AQUA
-                )
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(toDimType.location().toString())))
-        );
-        MutableComponent addMap = Component.literal("[+X]").withStyle(
-            Style.EMPTY
-                .applyFormat(ChatFormatting.GREEN)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Add to Xaero's minimap")))
-                .withClickEvent(new ClickEvent(
-                    ClickEvent.Action.RUN_COMMAND,
-                    "/xaero_waypoint_add:%s:%s:%s:%s:%s:0:false:0:Internal_%s_waypoints".formatted(
-                        locPoint.desc,
-                        locPoint.desc.substring(0, 1),
-                        (int) locPoint.x,
-                        (int) locPoint.y,
-                        (int) locPoint.z,
-                        locPoint.dimType.location().getPath()
-                    )
-                ))
+                .applyFormat(ChatFormatting.YELLOW)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("View loc point information")))
+                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/loc info %s".formatted(locPoint.id)))
         );
         MutableComponent remove = Component.literal("[\uD83D\uDDD1]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Remove loc point")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/loc remove %s".formatted(locPoint.id)))
         );
-        MutableComponent component1 = Component.literal("▶ ").append(component)
-            .append(" ").append(pos);
-        if (scale > 0) component1.append("->").append(toPos);
-        return component1
-            .append(" ").append(addMap)
+        return Component.literal("▶ ").append(component)
+            .append(" ").append(pos.getFirst())
+            .append(" ").append(info)
             .append(" ").append(remove);
+    }
+
+    public static int info(CommandContext<CommandSourceStack> context) {
+        LOC_POINT.init(context);
+        Long id = LongArgumentType.getLong(context, "id");
+        LocPoint point = LOC_POINT.map.getOrDefault(id, null);
+        if (point == null) {
+            context.getSource().sendFailure(Component.literal("No such loc id %s".formatted(id)));
+            return 0;
+        }
+        for (Component component : LocCommand.info(point)) {
+            context.getSource().sendSuccess(() -> component, false);
+        }
+        return 1;
+    }
+
+    public static @NotNull List<Component> info(@NotNull LocPoint point) {
+        MutableComponent desc = Component.literal(point.desc);
+        MutableComponent dimType;
+        if (point.dimType == Level.NETHER) {
+            dimType = Component.translatableWithFallback("advancements.nether.root.title", point.dimType.location().toString());
+        } else if (point.dimType == Level.END) {
+            dimType = Component.translatableWithFallback("advancements.end.root.title", point.dimType.location().toString());
+        } else if (point.dimType == Level.OVERWORLD) {
+            dimType = Component.translatableWithFallback("flat_world_preset.minecraft.overworld", point.dimType.location().toString());
+        } else {
+            dimType = Component.literal(point.dimType.location().toString());
+        }
+        List<MutableComponent> pos = LocCommand.pos(point.desc, point.x, point.y, point.z, point.dimType);
+        List<Component> result = new ArrayList<>();
+        result.add(Component.literal("==================").withStyle(ChatFormatting.YELLOW));
+        result.add(Component.literal("Loc Point: ").append(desc));
+        result.add(Component.literal("Dimension: ").append(dimType));
+        if (!pos.isEmpty()) result.add(Component.literal("Position: ").append(pos.get(0)));
+        if (pos.size() > 1) result.add(pos.get(1));
+        if (pos.size() > 2) result.add(Component.literal("Transform Position: ").append(pos.get(2)));
+        if (pos.size() > 3) result.add(pos.get(3));
+        result.add(Component.literal("==================").withStyle(ChatFormatting.YELLOW));
+        return result;
+    }
+
+    public static @NotNull @Unmodifiable List<MutableComponent> pos(String desc, double x, double y, double z, @NotNull ResourceKey<Level> dimension) {
+        MutableComponent pos = Component.literal("[%.2f, %.2f, %.2f]".formatted(x, y, z)).withStyle(
+            Style.EMPTY
+                .applyFormat(
+                    dimension == Level.OVERWORLD ?
+                        ChatFormatting.GREEN :
+                        dimension == Level.NETHER ?
+                            ChatFormatting.RED :
+                            dimension == Level.END ?
+                                ChatFormatting.LIGHT_PURPLE :
+                                ChatFormatting.AQUA
+                )
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(dimension.location().toString())))
+        );
+        double scale = 0;
+        ResourceKey<Level> toDimension = Level.END;
+        if (dimension == Level.NETHER) {
+            scale = 8;
+            toDimension = Level.OVERWORLD;
+        } else if (dimension == Level.OVERWORLD) {
+            scale = 0.125;
+            toDimension = Level.NETHER;
+        }
+        MutableComponent toPos = Component.literal("[%.2f, %.2f, %.2f]".formatted(x * scale, y * scale, z * scale)).withStyle(
+            Style.EMPTY
+                .applyFormat(
+                    dimension == Level.OVERWORLD ?
+                        ChatFormatting.RED :
+                        dimension == Level.NETHER ?
+                            ChatFormatting.GREEN :
+                            ChatFormatting.AQUA
+                )
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(toDimension.location().toString())))
+        );
+        return scale > 0 ?
+            List.of(pos, xaero(desc, x, y, z, dimension), toPos, xaero(desc, x * scale, y * scale, z * scale, toDimension)) :
+            List.of(pos, xaero(desc, x, y, z, dimension));
+    }
+
+    public static @NotNull MutableComponent xaero(String desc, double x, double y, double z, @NotNull ResourceKey<Level> dimType) {
+        int color = dimType == Level.OVERWORLD ? 10 :
+            dimType == Level.NETHER ? 12 :
+                dimType == Level.END ? 13 : 11;
+        return Component.literal(
+            "xaero-waypoint:%s:%s:%.0f:%.0f:%.0f:%d:false:0:Internal-%s-waypoints"
+                .formatted(
+                    desc,
+                    desc.substring(0, 1),
+                    x,
+                    y,
+                    z,
+                    color,
+                    dimType.location().getPath()
+                )
+        );
     }
 
     public record LocPoint(

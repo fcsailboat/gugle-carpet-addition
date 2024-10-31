@@ -4,14 +4,10 @@ import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import dev.dubhe.gugle.carpet.GcaSetting;
-import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
-import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,6 +16,8 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 public class HereCommand {
     public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
@@ -45,57 +43,9 @@ public class HereCommand {
         Vec3 position = player.position();
         ResourceKey<Level> dimension = player.level().dimension();
         String name = player.getGameProfile().getName();
-        MutableComponent pos = Component.literal("[%.2f, %.2f, %.2f]".formatted(position.x, position.y, position.z)).withStyle(
-            Style.EMPTY
-                .applyFormat(
-                    dimension == Level.OVERWORLD ?
-                        ChatFormatting.GREEN :
-                        dimension == Level.NETHER ?
-                            ChatFormatting.RED :
-                            dimension == Level.END ?
-                                ChatFormatting.LIGHT_PURPLE :
-                                ChatFormatting.AQUA
-                )
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(dimension.location().toString())))
-        );
-        double scale = 0;
-        ResourceKey<Level> toDimType = Level.END;
-        if (dimension == Level.NETHER) {
-            scale = 8;
-            toDimType = Level.OVERWORLD;
-        } else if (dimension == Level.OVERWORLD) {
-            scale = 0.125;
-            toDimType = Level.NETHER;
-        }
-        MutableComponent toPos = Component.literal("[%.2f, %.2f, %.2f]".formatted(position.x * scale, position.y * scale, position.z * scale)).withStyle(
-            Style.EMPTY
-                .applyFormat(
-                    dimension == Level.OVERWORLD ?
-                        ChatFormatting.RED :
-                        dimension == Level.NETHER ?
-                            ChatFormatting.GREEN :
-                            ChatFormatting.AQUA
-                )
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(toDimType.location().toString())))
-        );
-        MutableComponent addMap = Component.literal("[+X]").withStyle(
-            Style.EMPTY
-                .applyFormat(ChatFormatting.GREEN)
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Add to Xaero's minimap")))
-                .withClickEvent(new ClickEvent(
-                    ClickEvent.Action.RUN_COMMAND,
-                    "/xaero_waypoint_add:%s:%s:%s:%s:%s:0:false:0:Internal_%s_waypoints".formatted(
-                        name,
-                        name.substring(0, 1),
-                        (int) position.x,
-                        (int) position.y,
-                        (int) position.z,
-                        dimension.location().getPath()
-                    )
-                ))
-        );
-        MutableComponent component = Component.literal("%s at".formatted(name)).append(" ").append(pos);
-        if (scale > 0) component.append("->").append(toPos);
-        return component.append(" ").append(addMap);
+        List<MutableComponent> pos = LocCommand.pos("Shared Location", position.x, position.y, position.z, dimension);
+        MutableComponent component = Component.literal("%s at".formatted(name)).append(" ").append(pos.get(0));
+        if (pos.size() > 2) component.append("->").append(pos.get(2));
+        return component;
     }
 }

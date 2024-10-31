@@ -135,6 +135,10 @@ public class TodoCommand {
         final int pageSize = 8;
         int size = TODO.map.size();
         int maxPage = size / pageSize + 1;
+        if (page > maxPage) {
+            context.getSource().sendFailure(Component.literal("No such page %s".formatted(page)));
+            return 0;
+        }
         Todo[] todos = TODO.map.values().toArray(new Todo[0]);
         context.getSource().sendSystemMessage(
             Component.literal("======= Todo List (Page %s/%s) =======".formatted(page, maxPage))
@@ -182,16 +186,19 @@ public class TodoCommand {
         MutableComponent success = Component.literal("[✔]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.GREEN)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Make todo done")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/todo success %s".formatted(todo.id)))
         );
         MutableComponent unSuccess = Component.literal("[❌]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Make todo undone")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/todo success %s false".formatted(todo.id)))
         );
         MutableComponent remove = Component.literal("[\uD83D\uDDD1]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.RED)
+                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Remove todo")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/todo remove %s".formatted(todo.id)))
         );
         return Component.literal(todo.success ? "☑" : "☐")
