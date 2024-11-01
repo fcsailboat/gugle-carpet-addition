@@ -37,20 +37,29 @@ public class FakePlayerInventoryMenu extends ChestMenu {
             } else if (slotStack.getItem() instanceof ArmorItem armorItem) {
                 // 如果是盔甲，移动到盔甲槽
                 int ordinal = armorItem.getType().ordinal();
-                if (FakePlayerInventoryMenu.moveToArmor(chestMenu, slotStack, ordinal) || FakePlayerInventoryMenu.moveToInventory(chestMenu, slotStack)) {
+                if (FakePlayerInventoryMenu.moveToArmor(chestMenu, slotStack, ordinal) || moveToInventory(chestMenu, slotStack)) {
                     return ItemStack.EMPTY;
                 }
             } else if (slotStack.is(Items.ELYTRA)) {
                 // 如果是鞘翅，移动到盔甲槽
-                if (FakePlayerInventoryMenu.moveToArmor(chestMenu, slotStack, 1) || FakePlayerInventoryMenu.moveToInventory(chestMenu, slotStack)) {
+                if (FakePlayerInventoryMenu.moveToArmor(chestMenu, slotStack, 1) || moveToInventory(chestMenu, slotStack)) {
                     return ItemStack.EMPTY;
                 }
             } else if (slotStack.has(DataComponents.FOOD)) {
                 // 如果是食物，移动到副手
-                if (FakePlayerInventoryMenu.moveToOffHand(chestMenu, slotStack) || (FakePlayerInventoryMenu.moveToInventory(chestMenu, slotStack))) {
+                if (FakePlayerInventoryMenu.moveToOffHand(chestMenu, slotStack) || moveToInventory(chestMenu, slotStack)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (FakePlayerInventoryMenu.moveToInventory(chestMenu, slotStack)) {
+            } else if (moveToInventory(chestMenu, slotStack)) {
+                // 物品栏没有剩余空间了，移动到盔甲和副手
+                for (int i = 0; i < 4; i++) {
+                    if (moveToArmor(chestMenu, slotStack, i)) {
+                        return ItemStack.EMPTY;
+                    }
+                }
+                if (moveToOffHand(chestMenu, slotStack)) {
+                    return ItemStack.EMPTY;
+                }
                 // 其它物品移动的物品栏中
                 return ItemStack.EMPTY;
             }
