@@ -52,12 +52,8 @@ public class FakePlayerInventoryMenu extends ChestMenu {
                 }
             } else if (moveToInventory(chestMenu, slotStack)) {
                 // 物品栏没有剩余空间了，移动到盔甲和副手
-                for (int i = 0; i < 4; i++) {
-                    if (moveToArmor(chestMenu, slotStack, i)) {
-                        return ItemStack.EMPTY;
-                    }
-                }
-                if (moveToOffHand(chestMenu, slotStack)) {
+                AbstractContainerMenuAccessor accessor = (AbstractContainerMenuAccessor) (chestMenu);
+                if (accessor.invokerMoveItemStackTo(slotStack, 1, 8, false)) {
                     return ItemStack.EMPTY;
                 }
                 // 其它物品移动的物品栏中
