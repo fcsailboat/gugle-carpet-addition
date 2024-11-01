@@ -10,6 +10,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 
 public class FakePlayerInventoryMenu extends ChestMenu {
@@ -37,6 +38,11 @@ public class FakePlayerInventoryMenu extends ChestMenu {
                 // 如果是盔甲，移动到盔甲槽
                 int ordinal = armorItem.getType().ordinal();
                 if (FakePlayerInventoryMenu.moveToArmor(chestMenu, slotStack, ordinal) || FakePlayerInventoryMenu.moveToInventory(chestMenu, slotStack)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (slotStack.is(Items.ELYTRA)) {
+                // 如果是鞘翅，移动到盔甲槽
+                if (FakePlayerInventoryMenu.moveToArmor(chestMenu, slotStack, 1) || FakePlayerInventoryMenu.moveToInventory(chestMenu, slotStack)) {
                     return ItemStack.EMPTY;
                 }
             } else if (slotStack.has(DataComponents.FOOD)) {
