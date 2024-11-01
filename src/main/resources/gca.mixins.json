@@ -21,7 +21,8 @@
     "PlayerMixin",
     "ServerLevelMixin",
     "ServerPlaceRecipeMixin",
-    "SignBlockMixin"
+    "SignBlockMixin",
+    "SlotMixin"
   ],
   "server": [
   ],
