@@ -6,10 +6,7 @@ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import dev.dubhe.gugle.carpet.GcaExtension;
 import dev.dubhe.gugle.carpet.GcaSetting;
 import dev.dubhe.gugle.carpet.api.tools.text.ComponentTranslate;
-import dev.dubhe.gugle.carpet.tools.ClientUtils;
-import dev.dubhe.gugle.carpet.tools.FakePlayerEnderChestContainer;
-import dev.dubhe.gugle.carpet.tools.FakePlayerInventoryContainer;
-import dev.dubhe.gugle.carpet.tools.FakePlayerInventoryMenu;
+import dev.dubhe.gugle.carpet.tools.*;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
@@ -36,6 +33,10 @@ abstract class PlayerMixin {
                     = GcaExtension.fakePlayerInventoryContainerMap.get(gca$self);
             entry.getKey().tick();
             entry.getValue().tick();
+        } else if (gca$self.level().isClientSide) {
+            if (gca$self.containerMenu instanceof ClientMenuTick tick) {
+                tick.tick();
+            }
         }
     }
 
