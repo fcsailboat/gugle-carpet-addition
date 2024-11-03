@@ -41,7 +41,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class BotCommand {
     public static final FilesUtil<String, BotInfo> BOT_INFO = new FilesUtil<>("bot", Object::toString, BotInfo.class);
-    public static final FilesUtil<String,BotGroupInfo> BOT_GROUP_INFO = new FilesUtil<>("botGroup", Objects::toString, BotGroupInfo.class);
+    public static final FilesUtil<String, BotGroupInfo> BOT_GROUP_INFO = new FilesUtil<>("botGroup", Object::toString, BotGroupInfo.class);
 
     public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("bot")
@@ -155,9 +155,20 @@ public class BotCommand {
             return 0;
         }
         List<String> botNames = BOT_GROUP_INFO.map.get(groupName).bots;
+        List<String> failedBots = new ArrayList<>();
         for (String botName : botNames) {
+            if(!BOT_INFO.map.containsKey(botName)){
+                failedBots.add(botName);
+                continue;
+            }
             source.getServer().getCommands().performPrefixedCommand(source,"/player %s kill".formatted(botName));
         }
+        botNames.removeAll(failedBots);
+        BOT_GROUP_INFO.map.put(
+                groupName,
+                new BotGroupInfo(groupName, botNames)
+        );
+        BOT_GROUP_INFO.save();
         return 1;
     }
 
@@ -171,8 +182,13 @@ public class BotCommand {
             return 0;
         }
         List<String> botNames = BOT_GROUP_INFO.map.get(groupName).bots;
-        for (String botName : botNames) {
-            BotInfo botInfo = BOT_INFO.map.getOrDefault(botName, null);
+        List<String> failedBots = new ArrayList<>();
+        for (String botName : new ArrayList<>(botNames)) {
+            if (!BOT_INFO.map.containsKey(botName)) {
+                failedBots.add(botName);
+                continue;
+            }
+            BotInfo botInfo = BOT_INFO.map.get(botName);
             boolean success = EntityPlayerMPFake.createFake(
                     botName,
                     BOT_INFO.server,
@@ -192,8 +208,15 @@ public class BotCommand {
                 }
             } else {
                 source.sendFailure(Component.literal("%s is not loaded.".formatted(botName)));
+                failedBots.add(botName);
             }
         }
+        botNames.removeAll(failedBots);
+        BOT_GROUP_INFO.map.put(
+                groupName,
+                new BotGroupInfo(groupName, botNames)
+        );
+        BOT_GROUP_INFO.save();
         return 1;
     }
 
@@ -219,6 +242,7 @@ public class BotCommand {
                         botNames
                 )
         );
+        BOT_GROUP_INFO.save();
         source.sendSuccess(() -> Component.literal("Bot %s is removed from %s successfully.".formatted(botName,groupName)), false);
         return 1;
     }
@@ -425,12 +449,6 @@ public class BotCommand {
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal("Unload bot")))
                 .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/player %s kill".formatted(botInfo.name)))
         );
-//        MutableComponent usePerTick = Component.literal("[U]").withStyle(
-//            Style.EMPTY
-//                .applyFormat(ChatFormatting.BLUE)
-//                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,Component.literal("bot use per tick")))
-//                .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND,"/player %s use continuous".formatted(botInfo.name)))
-//        );
         MutableComponent delete = Component.literal("[\uD83D\uDDD1]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.RED)
