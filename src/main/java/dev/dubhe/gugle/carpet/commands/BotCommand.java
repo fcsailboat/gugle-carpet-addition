@@ -134,7 +134,7 @@ public class BotCommand {
                             )
                     )
                     .then(
-                        Commands.literal("uploadGroup")
+                        Commands.literal("unloadGroup")
                             .then(
                                 Commands.argument("groupName",StringArgumentType.string())
                                     .executes(BotCommand::groupUnloadBot)
