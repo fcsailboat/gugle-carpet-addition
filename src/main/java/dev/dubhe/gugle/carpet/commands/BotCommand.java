@@ -131,7 +131,7 @@ public class BotCommand {
         return 1;
     }
 
-    private static MutableComponent botToComponent(BotInfo botInfo) {
+    private static @NotNull MutableComponent botToComponent(@NotNull BotInfo botInfo) {
         MutableComponent desc = Component.literal(botInfo.desc).withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.GRAY)
