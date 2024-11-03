@@ -18,9 +18,11 @@ public class GcaSetting {
 
     // 允许玩家打开假人末影箱
     @Rule(
-        categories = {GCA, EXPERIMENTAL, BOT}
+        categories = {GCA, EXPERIMENTAL, BOT},
+        options = {"ender_chest", "true", "false"},
+        validators = GcaValidators.EnderChest.class
     )
-    public static boolean openFakePlayerEnderChest = false;
+    public static String openFakePlayerEnderChest = "false";
 
     // 退出存档时保留假人
     @Rule(
