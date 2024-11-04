@@ -10,9 +10,7 @@ import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import dev.dubhe.gugle.carpet.GcaExtension;
 import dev.dubhe.gugle.carpet.GcaSetting;
-import dev.dubhe.gugle.carpet.mixin.APAccessor;
 import dev.dubhe.gugle.carpet.mixin.EntityInvoker;
-import dev.dubhe.gugle.carpet.mixin.EntityPlayerMPFakeInvoker;
 import dev.dubhe.gugle.carpet.mixin.PlayerAccessor;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.protocol.PacketFlow;
@@ -20,11 +18,12 @@ import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ClientInformation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.players.GameProfileCache;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.entity.SkullBlockEntity;
 
 import java.util.Map;
 
@@ -58,16 +57,17 @@ public class FakePlayerResident {
             gameprofile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(username), username);
         }
         GameProfile finalGameprofile = gameprofile;
-        EntityPlayerMPFakeInvoker.invokerFetchGameProfile(gameprofile.getName()).thenAcceptAsync((p) -> {
+        SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync((p) -> {
             GameProfile current = finalGameprofile;
             if (p.isPresent()) {
                 current = p.get();
             }
             EntityPlayerMPFake playerMPFake = EntityPlayerMPFake.respawnFake(server, server.overworld(), current, ClientInformation.createDefault());
             server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), playerMPFake,
-                    new CommonListenerCookie(current, 0, playerMPFake.clientInformation(), false));
+                new CommonListenerCookie(current, 0, playerMPFake.clientInformation(), false));
             playerMPFake.setHealth(20.0F);
-            playerMPFake.getAttribute(Attributes.STEP_HEIGHT).setBaseValue(0.6F);
+            AttributeInstance attribute = playerMPFake.getAttribute(Attributes.STEP_HEIGHT);
+            if (attribute != null) attribute.setBaseValue(0.6F);
             server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(playerMPFake, ((byte) (playerMPFake.yHeadRot * 256.0F / 360.0F))), playerMPFake.serverLevel().dimension());
             server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(playerMPFake), playerMPFake.serverLevel().dimension());
             playerMPFake.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);

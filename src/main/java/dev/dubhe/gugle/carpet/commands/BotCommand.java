@@ -1,10 +1,13 @@
 package dev.dubhe.gugle.carpet.commands;
 
+import carpet.CarpetSettings;
 import carpet.fakes.ServerPlayerInterface;
 import carpet.patches.EntityPlayerMPFake;
+import carpet.patches.FakeClientConnection;
 import carpet.utils.CommandHelper;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -14,6 +17,8 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.dubhe.gugle.carpet.GcaExtension;
 import dev.dubhe.gugle.carpet.GcaSetting;
+import dev.dubhe.gugle.carpet.mixin.EntityInvoker;
+import dev.dubhe.gugle.carpet.mixin.PlayerAccessor;
 import dev.dubhe.gugle.carpet.tools.FakePlayerSerializer;
 import dev.dubhe.gugle.carpet.tools.FilesUtil;
 import net.minecraft.ChatFormatting;
@@ -21,15 +26,26 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
+import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ClientInformation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.players.GameProfileCache;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -82,10 +98,11 @@ public class BotCommand {
             )
             .then(
                 Commands.literal("group")
+                    .executes(BotCommand::groupList)
                     .then(
                         Commands.literal("create")
                             .then(
-                                Commands.argument("name", StringArgumentType.string())
+                                Commands.argument("name", StringArgumentType.greedyString())
                                     .executes(BotCommand::groupCreate)
                             )
                     )
@@ -99,18 +116,18 @@ public class BotCommand {
                     .then(
                         Commands.literal("remove")
                             .then(
-                                Commands.argument("name", StringArgumentType.string())
+                                Commands.argument("name", StringArgumentType.greedyString())
                                     .executes(BotCommand::groupRemove)
                             )
                     )
                     .then(
                         Commands.literal("add")
                             .then(
-                                Commands.argument("group", StringArgumentType.string())
-                                    .suggests(BotCommand::suggestGroup)
+                                Commands.argument("bot", StringArgumentType.string())
+                                    .suggests(BotCommand::suggestPlayer)
                                     .then(
-                                        Commands.argument("bot", StringArgumentType.string())
-                                            .suggests(BotCommand::suggestPlayer)
+                                        Commands.argument("group", StringArgumentType.greedyString())
+                                            .suggests(BotCommand::suggestGroup)
                                             .executes(BotCommand::groupAddBot)
                                     )
                             )
@@ -118,11 +135,11 @@ public class BotCommand {
                     .then(
                         Commands.literal("remove")
                             .then(
-                                Commands.argument("group", StringArgumentType.string())
-                                    .suggests(BotCommand::suggestGroup)
+                                Commands.argument("bot", StringArgumentType.string())
+                                    .suggests(BotCommand::suggestPlayer)
                                     .then(
-                                        Commands.argument("bot", StringArgumentType.string())
-                                            .suggests(BotCommand::suggestPlayer)
+                                        Commands.argument("group", StringArgumentType.greedyString())
+                                            .suggests(BotCommand::suggestGroup)
                                             .executes(BotCommand::groupRemoveBot)
                                     )
                             )
@@ -130,21 +147,24 @@ public class BotCommand {
                     .then(
                         Commands.literal("load")
                             .then(
-                                Commands.argument("group", StringArgumentType.string())
+                                Commands.argument("group", StringArgumentType.greedyString())
+                                    .suggests(BotCommand::suggestGroup)
                                     .executes(BotCommand::groupLoadBot)
                             )
                     )
                     .then(
                         Commands.literal("unload")
                             .then(
-                                Commands.argument("group", StringArgumentType.string())
+                                Commands.argument("group", StringArgumentType.greedyString())
+                                    .suggests(BotCommand::suggestGroup)
                                     .executes(BotCommand::groupUnloadBot)
                             )
                     )
                     .then(
                         Commands.literal("info")
                             .then(
-                                Commands.argument("group", StringArgumentType.string())
+                                Commands.argument("group", StringArgumentType.greedyString())
+                                    .suggests(BotCommand::suggestGroup)
                                     .executes(BotCommand::groupInfo)
                             )
                     )
@@ -156,7 +176,7 @@ public class BotCommand {
         BOT_GROUP_INFO.init(context);
         BOT_INFO.init(context);
         CommandSourceStack source = context.getSource();
-        String groupName = StringArgumentType.getString(context, "groupName");
+        String groupName = StringArgumentType.getString(context, "group");
         if (!BOT_GROUP_INFO.map.containsKey(groupName)) {
             source.sendFailure(Component.literal("Group %s is not found.".formatted(groupName)));
             return true;
@@ -179,7 +199,7 @@ public class BotCommand {
 
     private static int groupInfo(CommandContext<CommandSourceStack> context) {
         if (groupInit(context)) return 0;
-        String groupName = StringArgumentType.getString(context, "groupName");
+        String groupName = StringArgumentType.getString(context, "group");
         int page;
         try {
             page = IntegerArgumentType.getInteger(context, "page");
@@ -198,7 +218,7 @@ public class BotCommand {
             botInfos.add(BOT_INFO.map.get(botName));
         }
         context.getSource().sendSystemMessage(
-            Component.literal("======= Bot List (Page %s/%s) =======".formatted(page, maxPage))
+            Component.literal("======= Bot Group %s (Page %s/%s) =======".formatted(groupName, page, maxPage))
                 .withStyle(ChatFormatting.YELLOW)
         );
         for (int i = (page - 1) * pageSize; i < size && i < page * pageSize; i++) {
@@ -211,7 +231,7 @@ public class BotCommand {
     private static int groupUnloadBot(CommandContext<CommandSourceStack> context) {
         if (groupInit(context)) return 0;
         CommandSourceStack source = context.getSource();
-        String groupName = StringArgumentType.getString(context, "groupName");
+        String groupName = StringArgumentType.getString(context, "group");
         List<String> botNames = BOT_GROUP_INFO.map.get(groupName).bots;
         for (String botName : botNames) {
             ServerPlayer player = source.getServer().getPlayerList().getPlayerByName(botName);
@@ -226,7 +246,7 @@ public class BotCommand {
         BOT_GROUP_INFO.init(context);
         BOT_INFO.init(context);
         CommandSourceStack source = context.getSource();
-        String groupName = StringArgumentType.getString(context, "groupName");
+        String groupName = StringArgumentType.getString(context, "group");
         if (!BOT_GROUP_INFO.map.containsKey(groupName)) {
             source.sendFailure(Component.literal("Group %s is not found.".formatted(groupName)));
             return 0;
@@ -238,7 +258,7 @@ public class BotCommand {
                 failedBots.add(botName);
                 continue;
             }
-            load(botName, source, source::sendFailure);
+            load(botName, source::sendFailure);
         }
         botNames.removeAll(failedBots);
         BOT_GROUP_INFO.map.put(
@@ -252,8 +272,8 @@ public class BotCommand {
     private static int groupRemoveBot(CommandContext<CommandSourceStack> context) {
         BOT_GROUP_INFO.init(context);
         CommandSourceStack source = context.getSource();
-        String groupName = StringArgumentType.getString(context, "groupName");
-        String botName = StringArgumentType.getString(context, "botName");
+        String groupName = StringArgumentType.getString(context, "group");
+        String botName = StringArgumentType.getString(context, "bot");
         if (!BOT_GROUP_INFO.map.containsKey(groupName)) {
             source.sendFailure(Component.literal("Group %s is not found.".formatted(groupName)));
             return 0;
@@ -280,8 +300,8 @@ public class BotCommand {
         BOT_GROUP_INFO.init(context);
         BOT_INFO.init(context);
         CommandSourceStack source = context.getSource();
-        String groupName = StringArgumentType.getString(context, "groupName");
-        String botName = StringArgumentType.getString(context, "botName");
+        String groupName = StringArgumentType.getString(context, "group");
+        String botName = StringArgumentType.getString(context, "bot");
         if (!BOT_INFO.map.containsKey(botName)) {
             source.sendFailure(Component.literal("Bot %s is not found.".formatted(botName)));
             return 0;
@@ -402,7 +422,7 @@ public class BotCommand {
         return component.append(" ").append(delete);
     }
 
-    private static boolean load(String name, CommandSourceStack source, Consumer<Component> failure) {
+    private static boolean load(String name, Consumer<Component> failure) {
         if (BOT_INFO.server.getPlayerList().getPlayerByName(name) != null) {
             failure.accept(Component.literal("player %s is already exist.".formatted(name)));
             return false;
@@ -412,35 +432,57 @@ public class BotCommand {
             failure.accept(Component.literal("%s is not exist."));
             return false;
         }
-        boolean success = EntityPlayerMPFake.createFake(
-            name,
-            BOT_INFO.server,
-            botInfo.pos,
-            botInfo.facing.y,
-            botInfo.facing.x,
-            botInfo.dimType,
-            botInfo.mode,
-            botInfo.flying
-        );
-        if (success) {
-            if (botInfo.actions != null) {
-                GcaExtension.ON_PLAYER_LOGGED_IN.put(
-                    name,
-                    (player) -> FakePlayerSerializer.applyActionPackFromJson(botInfo.actions, player)
-                );
+        boolean success = false;
+        try {
+            ServerLevel worldIn = BOT_INFO.server.getLevel(botInfo.dimType);
+            GameProfileCache.setUsesAuthentication(false);
+            GameProfile gameprofile;
+            try {
+                GameProfileCache profileCache = BOT_INFO.server.getProfileCache();
+                if (profileCache == null) gameprofile = null;
+                else gameprofile = profileCache.get(name).orElse(null);
+                if (gameprofile == null) {
+                    if (!CarpetSettings.allowSpawningOfflinePlayers) return false;
+                    gameprofile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(name), name);
+                }
+                GameProfile finalGP = gameprofile;
+                SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync((p) -> {
+                    System.out.println(1);
+                    GameProfile current = finalGP;
+                    if (p.isPresent()) current = p.get();
+                    if (worldIn == null) return;
+                    EntityPlayerMPFake instance = EntityPlayerMPFake.respawnFake(BOT_INFO.server, worldIn, current, ClientInformation.createDefault());
+                    instance.fixStartingPosition = () -> instance.moveTo(botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.x, botInfo.facing.y);
+                    BOT_INFO.server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), instance, new CommonListenerCookie(current, 0, instance.clientInformation(), false));
+                    instance.teleportTo(worldIn, botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.x, botInfo.facing.y);
+                    instance.setHealth(20.0F);
+                    ((EntityInvoker) instance).invokerUnsetRemoved();
+                    AttributeInstance attribute = instance.getAttribute(Attributes.STEP_HEIGHT);
+                    if (attribute != null) attribute.setBaseValue(0.6000000238418579);
+                    instance.gameMode.changeGameModeForPlayer(botInfo.mode);
+                    BOT_INFO.server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(instance, (byte) ((int) (instance.yHeadRot * 256.0F / 360.0F))), botInfo.dimType);
+                    BOT_INFO.server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(instance), botInfo.dimType);
+                    instance.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
+                    instance.getAbilities().flying = botInfo.flying;
+                    FakePlayerSerializer.applyActionPackFromJson(botInfo.actions, instance);
+                }, BOT_INFO.server);
+                success = true;
+            } finally {
+                GameProfileCache.setUsesAuthentication(BOT_INFO.server.isDedicatedServer() && BOT_INFO.server.usesAuthentication());
             }
-            return true;
-        } else {
-            source.sendFailure(Component.literal("%s is not loaded.".formatted(name)));
-            return false;
+        } catch (Exception e) {
+            GcaExtension.LOGGER.error(e.getMessage(), e);
         }
+        if (!success) failure.accept(Component.literal("%s is not loaded.".formatted(name)));
+        return success;
     }
 
     private static int load(CommandContext<CommandSourceStack> context) {
         BOT_INFO.init(context);
         CommandSourceStack source = context.getSource();
         String name = StringArgumentType.getString(context, "player");
-        return load(name, source, source::sendFailure) ? 1 : 0;
+        boolean success = load(name, source::sendFailure);
+        return success ? 1 : 0;
     }
 
     private static int add(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

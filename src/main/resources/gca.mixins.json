@@ -6,12 +6,12 @@
   "mixins": [
     "AbstractContainerMenuAccessor",
     "AbstractContainerMenuMixin",
+    "ActionAccessor",
     "APAccessor",
     "AxeItemMixin",
     "ChestMenuMixin",
     "CommandsMixin",
     "EntityInvoker",
-    "EntityPlayerMPFakeInvoker",
     "FenceGateBlockMixin",
     "FishingHookMixin",
     "ItemFrameMixin",
