@@ -452,9 +452,9 @@ public class BotCommand {
                     if (p.isPresent()) current = p.get();
                     if (worldIn == null) return;
                     EntityPlayerMPFake instance = EntityPlayerMPFake.respawnFake(BOT_INFO.server, worldIn, current, ClientInformation.createDefault());
-                    instance.fixStartingPosition = () -> instance.moveTo(botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.x, botInfo.facing.y);
+                    instance.fixStartingPosition = () -> instance.moveTo(botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
                     BOT_INFO.server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), instance, new CommonListenerCookie(current, 0, instance.clientInformation(), false));
-                    instance.teleportTo(worldIn, botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.x, botInfo.facing.y);
+                    instance.teleportTo(worldIn, botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
                     instance.setHealth(20.0F);
                     ((EntityInvoker) instance).invokerUnsetRemoved();
                     AttributeInstance attribute = instance.getAttribute(Attributes.STEP_HEIGHT);
