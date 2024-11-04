@@ -216,6 +216,7 @@ public class BotCommand {
         for (String botName : botNames) {
             ServerPlayer player = source.getServer().getPlayerList().getPlayerByName(botName);
             if (player == null) continue;
+            if (!(player instanceof EntityPlayerMPFake)) continue;
             player.kill();
         }
         return 1;
