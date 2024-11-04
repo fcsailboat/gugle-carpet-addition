@@ -5,7 +5,6 @@ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import dev.dubhe.gugle.carpet.GcaExtension;
 import dev.dubhe.gugle.carpet.GcaSetting;
-import dev.dubhe.gugle.carpet.tools.GcaUtils;
 import dev.dubhe.gugle.carpet.api.tools.text.ComponentTranslate;
 import dev.dubhe.gugle.carpet.tools.*;
 import net.minecraft.world.InteractionHand;
@@ -50,7 +49,7 @@ abstract class PlayerMixin {
                 return InteractionResult.CONSUME;
             }
         } else {
-            if ((GcaSetting.openFakePlayerInventory || GcaUtils.openFakePlayerEnderChest(player)) && entity instanceof EntityPlayerMPFake fakePlayer) {
+            if ((GcaSetting.openFakePlayerInventory || SettingUtils.openFakePlayerEnderChest(player)) && entity instanceof EntityPlayerMPFake fakePlayer) {
                 // 打开物品栏
                 InteractionResult result = this.openInventory(player, fakePlayer);
                 if (result != InteractionResult.PASS) {
@@ -67,7 +66,7 @@ abstract class PlayerMixin {
         SimpleMenuProvider provider;
         if (player.isShiftKeyDown()) {
             // 打开末影箱
-            if (GcaUtils.openFakePlayerEnderChest(player)) {
+            if (SettingUtils.openFakePlayerEnderChest(player)) {
                 provider = new SimpleMenuProvider(
                         (i, inventory, p) -> ChestMenu.sixRows(
                                 i, inventory,

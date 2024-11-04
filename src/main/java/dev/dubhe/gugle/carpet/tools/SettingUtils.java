@@ -4,7 +4,7 @@ import dev.dubhe.gugle.carpet.GcaSetting;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Items;
 
-public class GcaUtils {
+public class SettingUtils {
     public static boolean openFakePlayerEnderChest(Player player) {
         if ("true".equals(GcaSetting.openFakePlayerEnderChest)) return true;
         return "ender_chest".equals(GcaSetting.openFakePlayerEnderChest) &&

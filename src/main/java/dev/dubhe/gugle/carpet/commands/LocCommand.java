@@ -7,19 +7,16 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import dev.dubhe.gugle.carpet.GcaExtension;
 import dev.dubhe.gugle.carpet.GcaSetting;
 import dev.dubhe.gugle.carpet.tools.FilesUtil;
+import dev.dubhe.gugle.carpet.tools.PosUtils;
 import dev.dubhe.gugle.carpet.tools.IdGenerator;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.arguments.DimensionArgument;
-import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
@@ -29,7 +26,6 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,14 +44,6 @@ public class LocCommand {
                         .then(
                             Commands.argument("desc", StringArgumentType.greedyString())
                                 .executes(LocCommand::add)
-                                .then(
-                                    Commands.argument("pos", Vec3Argument.vec3())
-                                        .executes(LocCommand::add)
-                                        .then(
-                                            Commands.argument("dim", DimensionArgument.dimension())
-                                                .executes(LocCommand::add)
-                                        )
-                                )
                         )
                 )
                 .then(
@@ -97,21 +85,8 @@ public class LocCommand {
         CommandSourceStack source = context.getSource();
         long id = IdGenerator.nextId();
         String desc = StringArgumentType.getString(context, "desc");
-        Vec3 pos;
-        try {
-            pos = Vec3Argument.getVec3(context, "pos");
-        } catch (IllegalArgumentException ignored) {
-            pos = source.getPosition();
-        }
-        ResourceKey<Level> dim;
-        try {
-            dim = DimensionArgument.getDimension(context, "dim").dimension();
-        } catch (IllegalArgumentException ignored) {
-            dim = source.getLevel().dimension();
-        } catch (CommandSyntaxException e) {
-            GcaExtension.LOGGER.error(e.getMessage(), e);
-            dim = source.getLevel().dimension();
-        }
+        Vec3 pos = source.getPosition();
+        ResourceKey<Level> dim = source.getLevel().dimension();
         LOC_POINT.map.put(id, new LocPoint(id, desc, pos.x, pos.y, pos.z, dim));
         LOC_POINT.save();
         source.sendSuccess(() -> Component.literal("Loc %s is added.".formatted(desc)), false);
@@ -189,7 +164,7 @@ public class LocCommand {
                 .applyFormat(ChatFormatting.GRAY)
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(Long.toString(locPoint.id))))
         );
-        List<MutableComponent> pos = LocCommand.pos(locPoint.desc, locPoint.x, locPoint.y, locPoint.z, locPoint.dimType);
+        List<MutableComponent> pos = PosUtils.pos(locPoint.desc, locPoint.x, locPoint.y, locPoint.z, locPoint.dimType);
         MutableComponent info = Component.literal("[i]").withStyle(
             Style.EMPTY
                 .applyFormat(ChatFormatting.YELLOW)
@@ -234,7 +209,7 @@ public class LocCommand {
         } else {
             dimType = Component.literal(point.dimType.location().toString());
         }
-        List<MutableComponent> pos = LocCommand.pos(point.desc, point.x, point.y, point.z, point.dimType);
+        List<MutableComponent> pos = PosUtils.pos(point.desc, point.x, point.y, point.z, point.dimType);
         List<Component> result = new ArrayList<>();
         result.add(Component.literal("==================").withStyle(ChatFormatting.YELLOW));
         result.add(Component.literal("Loc Point: ").append(desc));
@@ -245,63 +220,6 @@ public class LocCommand {
         if (pos.size() > 3) result.add(pos.get(3));
         result.add(Component.literal("==================").withStyle(ChatFormatting.YELLOW));
         return result;
-    }
-
-    public static @NotNull @Unmodifiable List<MutableComponent> pos(String desc, double x, double y, double z, @NotNull ResourceKey<Level> dimension) {
-        MutableComponent pos = Component.literal("[%.2f, %.2f, %.2f]".formatted(x, y, z)).withStyle(
-            Style.EMPTY
-                .applyFormat(
-                    dimension == Level.OVERWORLD ?
-                        ChatFormatting.GREEN :
-                        dimension == Level.NETHER ?
-                            ChatFormatting.RED :
-                            dimension == Level.END ?
-                                ChatFormatting.LIGHT_PURPLE :
-                                ChatFormatting.AQUA
-                )
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(dimension.location().toString())))
-        );
-        double scale = 0;
-        ResourceKey<Level> toDimension = Level.END;
-        if (dimension == Level.NETHER) {
-            scale = 8;
-            toDimension = Level.OVERWORLD;
-        } else if (dimension == Level.OVERWORLD) {
-            scale = 0.125;
-            toDimension = Level.NETHER;
-        }
-        MutableComponent toPos = Component.literal("[%.2f, %.2f, %.2f]".formatted(x * scale, y, z * scale)).withStyle(
-            Style.EMPTY
-                .applyFormat(
-                    dimension == Level.OVERWORLD ?
-                        ChatFormatting.RED :
-                        dimension == Level.NETHER ?
-                            ChatFormatting.GREEN :
-                            ChatFormatting.AQUA
-                )
-                .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.literal(toDimension.location().toString())))
-        );
-        return scale > 0 ?
-            List.of(pos, xaero(desc, x, y, z, dimension), toPos, xaero(desc, x * scale, y, z * scale, toDimension)) :
-            List.of(pos, xaero(desc, x, y, z, dimension));
-    }
-
-    public static @NotNull MutableComponent xaero(String desc, double x, double y, double z, @NotNull ResourceKey<Level> dimType) {
-        int color = dimType == Level.OVERWORLD ? 10 :
-            dimType == Level.NETHER ? 12 :
-                dimType == Level.END ? 13 : 11;
-        return Component.literal(
-            "xaero-waypoint:%s:%s:%.0f:%.0f:%.0f:%d:false:0:Internal-%s-waypoints"
-                .formatted(
-                    desc,
-                    desc.substring(0, 1),
-                    x,
-                    y,
-                    z,
-                    color,
-                    dimType.location().getPath()
-                )
-        );
     }
 
     public record LocPoint(
