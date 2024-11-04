@@ -1,4 +1,5 @@
 plugins {
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
     id 'fabric-loom' version '1.6-SNAPSHOT'
     id 'maven-publish'
 }
@@ -36,6 +37,7 @@ dependencies {
 
     // fabric-carpet
     modImplementation("curse.maven:carpet-349239:${project.carpet_core_version}")
+    implementation 'jep:jep:2.24'
     // xaeromap
 //     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 //     modImplementation("curse.maven:xaeros-world-map-317780:5658242")
@@ -75,11 +77,30 @@ java {
     withSourcesJar()
 }
 
+shadowJar {
+    dependencies {
+        include(dependency 'jep:jep:2.24')
+    }
+    from("LICENSE") {
+        rename { "${it}_${project.archivesBaseName}" }
+    }
+}
+
 jar {
     from("LICENSE") {
         rename { "${it}_${project.archivesBaseName}" }
     }
 }
+
+tasks.register('renameTask') {
+    doFirst {
+        delete file("./build/libs/${project.archivesBaseName}-${project.version}.jar")
+        println(file("./build/libs/${project.archivesBaseName}-${project.version}.jar"))
+        file("./build/libs/${project.archivesBaseName}-${project.version}-all.jar").renameTo(file("./build/libs/${project.archivesBaseName}-${project.version}.jar"))
+    }
+}
+
+build.finalizedBy(shadowJar).finalizedBy(renameTask)
 
 // configure the maven publication
 publishing {

@@ -71,6 +71,9 @@
   "carpet.rule.commandWhereis.name": "/whereis Command",
   "carpet.rule.commandWhereis.desc": "Quickly locate players",
 
+  "carpet.rule.simpleInGameCalculator.name": "Simple In-Game Calculator",
+  "carpet.rule.simpleInGameCalculator.desc": "Simple In-Game Calculator",
+
   "gca.action.attack.interval.12": "Attack every 12 gt: %s",
   "gca.action.attack.continuous": "Attack continuous: %s",
   "gca.action.use.continuous": "Use continuous: %s",

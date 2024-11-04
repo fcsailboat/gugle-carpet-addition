@@ -157,4 +157,10 @@ public class GcaSetting {
         categories = {GCA, EXPERIMENTAL}
     )
     public static boolean betterQuickCrafting = false;
+
+    // 简单的游戏内计算器
+    @Rule(
+        categories = {GCA, EXPERIMENTAL}
+    )
+    public static boolean simpleInGameCalculator = false;
 }
