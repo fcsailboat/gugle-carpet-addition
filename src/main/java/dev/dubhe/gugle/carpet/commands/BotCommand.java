@@ -595,14 +595,14 @@ public class BotCommand {
             Component.literal("<<<").withStyle(
                 Style.EMPTY
                     .applyFormat(ChatFormatting.GREEN)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command + (page - 1)))
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command + " " + (page - 1)))
             );
         Component nextPage = page >= maxPage ?
             Component.literal(">>>").withStyle(ChatFormatting.GRAY) :
             Component.literal(">>>").withStyle(
                 Style.EMPTY
                     .applyFormat(ChatFormatting.GREEN)
-                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command + (page + 1)))
+                    .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command + " " + (page + 1)))
             );
         context.getSource().sendSystemMessage(
             Component.literal("=======")
