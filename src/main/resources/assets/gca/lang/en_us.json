@@ -74,6 +74,9 @@
   "carpet.rule.simpleInGameCalculator.name": "Simple In-Game Calculator",
   "carpet.rule.simpleInGameCalculator.desc": "Simple In-Game Calculator",
 
+  "carpet.rule.qnmdLC.name": "Set LC value",
+  "carpet.rule.qnmdLC.desc": "What is the height value for setting the LC value",
+
   "gca.action.attack.interval.12": "Attack every 12 gt: %s",
   "gca.action.attack.continuous": "Attack continuous: %s",
   "gca.action.use.continuous": "Use continuous: %s",

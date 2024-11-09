@@ -163,4 +163,10 @@ public class GcaSetting {
         categories = {GCA, EXPERIMENTAL}
     )
     public static boolean simpleInGameCalculator = false;
+
+    // 设置LC值为多少高度时的值
+    @Rule(
+        categories = {GCA, EXPERIMENTAL}
+    )
+    public static int qnmdLC = -1;
 }
