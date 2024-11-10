@@ -164,6 +164,12 @@ public class GcaSetting {
     )
     public static boolean simpleInGameCalculator = false;
 
+    // 快速ping好友
+    @Rule(
+        categories = {GCA, EXPERIMENTAL}
+    )
+    public static boolean fastPingFriend = false;
+
     // 设置LC值为多少高度时的值
     @Rule(
         categories = {GCA, EXPERIMENTAL}

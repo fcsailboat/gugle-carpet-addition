@@ -74,6 +74,10 @@
   "carpet.rule.simpleInGameCalculator.name": "简单的游戏内计算器",
   "carpet.rule.simpleInGameCalculator.desc": "简单的游戏内计算器",
 
+  "carpet.rule.fastPingFriend.name": "快速Ping好友",
+  "carpet.rule.fastPingFriend.desc": "快速Ping好友",
+  "carpet.rule.fastPingFriend.msg": "%s @ 了你",
+
   "carpet.rule.qnmdLC.name": "设置LC值",
   "carpet.rule.qnmdLC.desc": "设置LC值的高度值是多少",
 

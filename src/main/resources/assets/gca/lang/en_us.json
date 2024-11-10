@@ -74,6 +74,10 @@
   "carpet.rule.simpleInGameCalculator.name": "Simple In-Game Calculator",
   "carpet.rule.simpleInGameCalculator.desc": "Simple In-Game Calculator",
 
+  "carpet.rule.fastPingFriend.name": "Fast Ping Friend",
+  "carpet.rule.fastPingFriend.desc": "Fast ping friend",
+  "carpet.rule.fastPingFriend.msg": "%s ping for you",
+
   "carpet.rule.qnmdLC.name": "Set LC value",
   "carpet.rule.qnmdLC.desc": "What is the height value for setting the LC value",
 
