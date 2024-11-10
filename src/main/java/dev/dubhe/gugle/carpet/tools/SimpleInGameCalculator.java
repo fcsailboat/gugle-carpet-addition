@@ -13,12 +13,13 @@ public class SimpleInGameCalculator {
         jep.addStandardFunctions();
         // 添加常用常量
         jep.addStandardConstants();
-        System.out.println(expression);
-        try {
+        // 添加虚数
+        jep.addComplex();
+        if (!jep.hasError()) {
             jep.parseExpression(expression);
             double result = jep.getValue();
             return Component.literal("=%f".formatted(result)).withStyle(ChatFormatting.DARK_GRAY);
-        } catch (Exception e) {
+        } else {
             return Component.literal("Illegal expression");
         }
     }
