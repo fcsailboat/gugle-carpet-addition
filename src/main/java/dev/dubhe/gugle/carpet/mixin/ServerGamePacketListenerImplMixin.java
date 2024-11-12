@@ -16,6 +16,11 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+//#if MC>=12100
+//#else
+//$$ import java.util.concurrent.CompletableFuture;
+//$$ import java.util.concurrent.ExecutionException;
+//#endif
 
 @Mixin(ServerGamePacketListenerImpl.class)
 abstract class ServerGamePacketListenerImplMixin {
@@ -24,11 +29,19 @@ abstract class ServerGamePacketListenerImplMixin {
     public abstract ServerPlayer getPlayer();
 
     @Inject(method = "method_45064", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;broadcastChatMessage(Lnet/minecraft/network/chat/PlayerChatMessage;)V", shift = At.Shift.AFTER))
+    //#if MC>=12100
     private void handleChat(PlayerChatMessage playerChatMessage, Component component, FilteredText filteredText, CallbackInfo ci) {
         this.gca$handleChat(GcaSetting.simpleInGameCalculator, "==", component, (server, player, msg) -> SimpleInGameCalculator.handleChat(server, msg));
         this.gca$handleChat(GcaSetting.fastPingFriend, "@ ", component, FastPingFriend::handleChat);
         this.gca$handleChat(GcaSetting.fastPingFriend, "@@ ", component, FastPingFriend::handleChatUrgent);
     }
+    //#else
+    //$$ private void handleChat(PlayerChatMessage playerChatMessage, CompletableFuture<Component> completableFuture, CompletableFuture<FilteredText> completableFuture2, Void void_, CallbackInfo ci) throws ExecutionException, InterruptedException {
+    //$$     this.gca$handleChat(GcaSetting.simpleInGameCalculator, "==", completableFuture.get(), (server, player, msg) -> SimpleInGameCalculator.handleChat(server, msg));
+    //$$     this.gca$handleChat(GcaSetting.fastPingFriend, "@ ", completableFuture.get(), FastPingFriend::handleChat);
+    //$$     this.gca$handleChat(GcaSetting.fastPingFriend, "@@ ", completableFuture.get(), FastPingFriend::handleChatUrgent);
+    //$$ }
+    //#endif
 
     @Unique
     private void gca$handleChat(boolean rule, String prefix, Component component, TriConsumer<MinecraftServer, ServerPlayer, String> handle) {
