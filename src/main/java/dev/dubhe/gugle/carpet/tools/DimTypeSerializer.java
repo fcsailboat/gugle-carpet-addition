@@ -18,7 +18,14 @@ import java.lang.reflect.Type;
 public class DimTypeSerializer implements JsonSerializer<ResourceKey<Level>>, JsonDeserializer<ResourceKey<Level>> {
     @Override
     public ResourceKey<Level> deserialize(@NotNull JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-        return ResourceKey.create(Registries.DIMENSION, ResourceLocation.parse(json.getAsString()));
+        return ResourceKey.create(
+            Registries.DIMENSION,
+            //#if MC>=12100
+            ResourceLocation.parse(json.getAsString())
+            //#else
+            //$$ new ResourceLocation(json.getAsString())
+            //#endif
+        );
     }
 
     @Override

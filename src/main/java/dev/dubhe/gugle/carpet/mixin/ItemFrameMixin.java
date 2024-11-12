@@ -57,7 +57,7 @@ abstract class ItemFrameMixin extends Entity {
         )},
         cancellable = true
     )
-    private void interact(Player player, InteractionHand interactionHand, CallbackInfoReturnable<InteractionResult> cir) {
+    private void interact(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
         if (GcaSetting.betterItemFrameInteraction) {
             if ((!player.getMainHandItem().is(Items.CACTUS) || !player.getOffhandItem().is(this::gca$isGlass)) && (!player.getOffhandItem().is(Items.CACTUS) || !player.getMainHandItem().is(this::gca$isGlass))) {
                 if (!player.getMainHandItem().is(Items.CACTUS) && !player.getOffhandItem().is(Items.CACTUS)) {
@@ -66,7 +66,11 @@ abstract class ItemFrameMixin extends Entity {
                     BlockPos blockPos = this.getOnPos().relative(direction, -1);
                     BlockState blockState = level.getBlockState(blockPos);
                     BlockHitResult hitResult = new BlockHitResult(Vec3.atCenterOf(blockPos), direction, blockPos, false);
+                    //#if MC>=12100
                     blockState.useWithoutItem(level, player, hitResult);
+                    //#else
+                    //$$ blockState.use(level, player, hand, hitResult);
+                    //#endif
                     cir.setReturnValue(InteractionResult.CONSUME);
                 }
             } else {

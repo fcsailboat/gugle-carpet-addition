@@ -1,8 +1,6 @@
 package dev.dubhe.gugle.carpet.mixin;
 
 import carpet.patches.EntityPlayerMPFake;
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import dev.dubhe.gugle.carpet.GcaExtension;
 import dev.dubhe.gugle.carpet.GcaSetting;
 import dev.dubhe.gugle.carpet.api.tools.text.ComponentTranslate;
@@ -22,6 +20,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Map;
 
+
+//#if MC>=12100
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+//#else
+//$$ import org.spongepowered.asm.mixin.injection.Redirect;
+//#endif
+
 @Mixin(Player.class)
 abstract class PlayerMixin {
     @Unique
@@ -31,7 +37,7 @@ abstract class PlayerMixin {
     private void tick(CallbackInfo ci) {
         if (gca$self instanceof EntityPlayerMPFake fakePlayer && fakePlayer.isAlive()) {
             Map.Entry<FakePlayerInventoryContainer, FakePlayerEnderChestContainer> entry
-                    = GcaExtension.fakePlayerInventoryContainerMap.get(gca$self);
+                = GcaExtension.fakePlayerInventoryContainerMap.get(gca$self);
             entry.getKey().tick();
             entry.getValue().tick();
         } else if (gca$self.level().isClientSide) {
@@ -41,6 +47,7 @@ abstract class PlayerMixin {
         }
     }
 
+    //#if MC>=12100
     @WrapOperation(method = "interactOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;interact(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;"))
     private InteractionResult interactOn(Entity entity, @NotNull Player player, InteractionHand hand, Operation<InteractionResult> original) {
         if (player.level().isClientSide()) {
@@ -60,6 +67,26 @@ abstract class PlayerMixin {
         }
         return original.call(entity, player, hand);
     }
+    //#else
+    //$$ @Redirect(method = "interactOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;interact(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;"))
+    //$$ private InteractionResult interactOn(Entity entity, @NotNull Player player, InteractionHand hand) {
+    //$$     if (player.level().isClientSide()) {
+    //$$         if (entity instanceof Player && ClientUtils.isFakePlayer(player)) {
+    //$$             return InteractionResult.CONSUME;
+    //$$         }
+    //$$     }  else {
+    //$$         if ((GcaSetting.openFakePlayerInventory || SettingUtils.openFakePlayerEnderChest(player)) && entity instanceof EntityPlayerMPFake fakePlayer) {
+    //$$             // 打开物品栏
+    //$$             InteractionResult result = this.openInventory(player, fakePlayer);
+    //$$             if (result != InteractionResult.PASS) {
+    //$$                 player.stopUsingItem();
+    //$$                 return result;
+    //$$             }
+    //$$         }
+    //$$     }
+    //$$     return entity.interact(player, hand);
+    //$$ }
+    //#endif
 
     @Unique
     private InteractionResult openInventory(@NotNull Player player, EntityPlayerMPFake fakePlayer) {
@@ -68,30 +95,30 @@ abstract class PlayerMixin {
             // 打开末影箱
             if (SettingUtils.openFakePlayerEnderChest(player)) {
                 provider = new SimpleMenuProvider(
-                        (i, inventory, p) -> ChestMenu.sixRows(
-                                i, inventory,
-                                GcaExtension.fakePlayerInventoryContainerMap.get(fakePlayer).getValue()
-                        ),
-                        ComponentTranslate.trans("gca.player.ender_chest", fakePlayer.getDisplayName())
+                    (i, inventory, p) -> ChestMenu.sixRows(
+                        i, inventory,
+                        GcaExtension.fakePlayerInventoryContainerMap.get(fakePlayer).getValue()
+                    ),
+                    ComponentTranslate.trans("gca.player.ender_chest", fakePlayer.getDisplayName())
                 );
             } else {
                 // 打开额外功能菜单
                 provider = new SimpleMenuProvider(
-                        (i, inventory, p) -> ChestMenu.threeRows(
-                                i, inventory,
-                                GcaExtension.fakePlayerInventoryContainerMap.get(fakePlayer).getValue()
-                        ),
-                        ComponentTranslate.trans("gca.player.other_controller", fakePlayer.getDisplayName())
+                    (i, inventory, p) -> ChestMenu.threeRows(
+                        i, inventory,
+                        GcaExtension.fakePlayerInventoryContainerMap.get(fakePlayer).getValue()
+                    ),
+                    ComponentTranslate.trans("gca.player.other_controller", fakePlayer.getDisplayName())
                 );
             }
         } else if (GcaSetting.openFakePlayerInventory) {
             // 打开物品栏
             provider = new SimpleMenuProvider(
-                    (i, inventory, p) -> new FakePlayerInventoryMenu(
-                            i, inventory,
-                            GcaExtension.fakePlayerInventoryContainerMap.get(fakePlayer).getKey()
-                    ),
-                    ComponentTranslate.trans("gca.player.inventory", fakePlayer.getDisplayName())
+                (i, inventory, p) -> new FakePlayerInventoryMenu(
+                    i, inventory,
+                    GcaExtension.fakePlayerInventoryContainerMap.get(fakePlayer).getKey()
+                ),
+                ComponentTranslate.trans("gca.player.inventory", fakePlayer.getDisplayName())
             );
         } else {
             return InteractionResult.PASS;

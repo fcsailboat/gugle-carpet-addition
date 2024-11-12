@@ -4,18 +4,23 @@ import dev.dubhe.gugle.carpet.api.menu.control.Button;
 import dev.dubhe.gugle.carpet.tools.ClientMenuTick;
 import dev.dubhe.gugle.carpet.tools.FakePlayerInventoryMenu;
 import dev.dubhe.gugle.carpet.tools.SlotIcon;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ChestMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.CustomData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+//#if MC>=12100
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
+//#else
+//$$ import net.minecraft.nbt.Tag;
+//#endif
 
 @SuppressWarnings("AddedMixinMembersNamePattern")
 @Mixin(ChestMenu.class)
@@ -44,10 +49,17 @@ public abstract class ChestMenuMixin implements ClientMenuTick {
     @Unique
     private boolean isFakePlayerMenu() {
         ItemStack itemStack = thisMenu.getSlot(0).getItem();
+        //#if MC>=12100
         if (itemStack.is(Items.STRUCTURE_VOID)) {
             CustomData customData = itemStack.get(DataComponents.CUSTOM_DATA);
             return customData != null && customData.copyTag().get(Button.GCA_CLEAR) != null;
         }
+        //#else
+        //$$ if (itemStack.is(Items.STRUCTURE_VOID) && itemStack.getTag() != null) {
+        //$$     Tag tag = itemStack.getTag().get(Button.GCA_CLEAR);
+        //$$     return tag != null && itemStack.getTag().getBoolean(Button.GCA_CLEAR);
+        //$$ }
+        //#endif
         return false;
     }
 }

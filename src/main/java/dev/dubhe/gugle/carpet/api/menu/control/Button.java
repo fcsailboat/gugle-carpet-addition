@@ -3,7 +3,6 @@ package dev.dubhe.gugle.carpet.api.menu.control;
 import dev.dubhe.gugle.carpet.api.Consumer;
 import dev.dubhe.gugle.carpet.api.tools.text.Color;
 import dev.dubhe.gugle.carpet.api.tools.text.ComponentTranslate;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -11,11 +10,16 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.CustomData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+
+//#if MC>=12100
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomData;
+//#else
+//#endif
 
 @SuppressWarnings("unused")
 public class Button {
@@ -68,6 +72,7 @@ public class Button {
         );
     }
 
+    //#if MC>=12100
     public Button(boolean defaultState, Item onItem, Item offItem, int itemCount, Component onText, Component offText) {
         this.flag = defaultState;
         this.compoundTag.putBoolean(GCA_CLEAR, true);
@@ -95,6 +100,30 @@ public class Button {
         offItemStack.set(DataComponents.CUSTOM_DATA, CustomData.of(compoundTag.copy()));
         this.offItem = offItemStack;
     }
+    //#else
+    //$$ public Button(boolean defaultState, Item onItem, Item offItem, int itemCount, Component onText, Component offText) {
+    //$$     this.flag = defaultState;
+    //$$     this.compoundTag.putBoolean("GcaClear", true);
+    //$$     ItemStack onItemStack = new ItemStack(onItem, itemCount);
+    //$$     onItemStack.setTag(compoundTag.copy());
+    //$$     onItemStack.setHoverName(onText);
+    //$$     this.onItem = onItemStack;
+    //$$     ItemStack offItemStack = new ItemStack(offItem, itemCount);
+    //$$     offItemStack.setTag(compoundTag.copy());
+    //$$     offItemStack.setHoverName(offText);
+    //$$     this.offItem = offItemStack;
+    //$$ }
+    //$$ public Button(boolean defaultState, @NotNull ItemStack onItem, @NotNull ItemStack offItem) {
+    //$$     this.flag = defaultState;
+    //$$     this.compoundTag.putBoolean("GcaClear", true);
+    //$$     ItemStack onItemStack = onItem.copy();
+    //$$     onItemStack.setTag(compoundTag.copy());
+    //$$     this.onItem = onItemStack;
+    //$$     ItemStack offItemStack = offItem.copy();
+    //$$     offItemStack.setTag(compoundTag.copy());
+    //$$     this.offItem = offItemStack;
+    //$$ }
+    //#endif
 
     public void checkButton(Container container, int slot) {
         ItemStack onItemStack = this.onItem.copy();

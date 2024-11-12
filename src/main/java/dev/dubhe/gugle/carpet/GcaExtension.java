@@ -57,7 +57,11 @@ public class GcaExtension implements CarpetExtension, ModInitializer {
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
 
     public static @NotNull ResourceLocation id(String path) {
+        //#if MC>=12100
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+        //#else
+        //$$ return new ResourceLocation(MOD_ID, path);
+        //#endif
     }
 
     public static final HashMap<Player, Map.Entry<FakePlayerInventoryContainer, FakePlayerEnderChestContainer>> fakePlayerInventoryContainerMap = new HashMap<>();

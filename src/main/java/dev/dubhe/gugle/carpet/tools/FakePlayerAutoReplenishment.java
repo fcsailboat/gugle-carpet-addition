@@ -1,11 +1,15 @@
 package dev.dubhe.gugle.carpet.tools;
 
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.ItemContainerContents;
 import org.jetbrains.annotations.NotNull;
+
+//#if MC>=12100
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.ItemContainerContents;
+//#else
+//#endif
 
 public class FakePlayerAutoReplenishment {
 
@@ -37,7 +41,9 @@ public class FakePlayerAutoReplenishment {
                     eachItem.setCount(0);
                 }
                 break;
-            } else if (eachItem.has(DataComponents.CONTAINER)) {
+            }
+            //#if MC>=12100
+            else if (eachItem.has(DataComponents.CONTAINER)) {
                 int result = pickItemFromBox(eachItem, itemStack, half);
                 if (result == 0) {
                     continue;
@@ -45,9 +51,12 @@ public class FakePlayerAutoReplenishment {
                 itemStack.grow(result);
                 return;
             }
+            //#else
+            //#endif
         }
     }
 
+    //#if MC>=12100
     // 从潜影盒拿取物品，请注意：在创造模式下使用鼠标中键复制物品（不是指选取方块）时，物品组件仅被浅拷贝。
     private static int pickItemFromBox(ItemStack shulkerBox, ItemStack itemStack, int count) {
         ItemContainerContents contents = shulkerBox.get(DataComponents.CONTAINER);
@@ -85,4 +94,6 @@ public class FakePlayerAutoReplenishment {
         // 潜影盒中已经没有物品了
         shulkerBox.set(DataComponents.CONTAINER, ItemContainerContents.EMPTY);
     }
+    //#else
+    //#endif
 }

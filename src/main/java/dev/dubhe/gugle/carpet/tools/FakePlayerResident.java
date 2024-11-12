@@ -17,18 +17,24 @@ import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ClientInformation;
-import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.players.GameProfileCache;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.block.entity.SkullBlockEntity;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
+
+//#if MC>=12100
+import net.minecraft.server.level.ClientInformation;
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.level.block.entity.SkullBlockEntity;
+//#else
+//#endif
+
 public class FakePlayerResident {
-    public static JsonObject save(Player player) {
+    public static @NotNull JsonObject save(Player player) {
         JsonObject fakePlayer = new JsonObject();
         if (GcaSetting.fakePlayerReloadAction) {
             EntityPlayerActionPack actionPack = ((ServerPlayerInterface) player).getActionPack();
@@ -37,7 +43,7 @@ public class FakePlayerResident {
         return fakePlayer;
     }
 
-    public static void createFake(String username, MinecraftServer server, final JsonObject actions) {
+    public static void createFake(String username, @NotNull MinecraftServer server, final JsonObject actions) {
         GameProfileCache.setUsesAuthentication(false);
         GameProfile gameprofile;
         try {
@@ -51,11 +57,12 @@ public class FakePlayerResident {
         }
         if (gameprofile == null) {
             if (!CarpetSettings.allowSpawningOfflinePlayers) {
-                GcaExtension.LOGGER.error("Spawning offline players %s is not allowed!".formatted(username));
+                GcaExtension.LOGGER.error("Spawning offline players {} is not allowed!", username);
                 return;
             }
             gameprofile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(username), username);
         }
+        //#if MC>=12100
         GameProfile finalGameprofile = gameprofile;
         SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync((p) -> {
             GameProfile current = finalGameprofile;
@@ -75,9 +82,20 @@ public class FakePlayerResident {
             FakePlayerSerializer.applyActionPackFromJson(actions, playerMPFake);
             ((EntityInvoker) playerMPFake).invokerUnsetRemoved();
         }, server);
+        //#else
+        //$$ EntityPlayerMPFake playerMPFake = EntityPlayerMPFake.respawnFake(server, server.overworld(), gameprofile);
+        //$$ server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), playerMPFake);
+        //$$ playerMPFake.setHealth(20.0F);
+        //$$ playerMPFake.setMaxUpStep(0.6F);
+        //$$ server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(playerMPFake, ((byte) (playerMPFake.yHeadRot * 256.0F / 360.0F))), playerMPFake.serverLevel().dimension());
+        //$$ server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(playerMPFake), playerMPFake.serverLevel().dimension());
+        //$$ playerMPFake.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
+        //$$ FakePlayerSerializer.applyActionPackFromJson(actions, playerMPFake);
+        //$$ ((EntityInvoker) playerMPFake).invokerUnsetRemoved();
+        //#endif
     }
 
-    public static void load(Map.Entry<String, JsonElement> entry, MinecraftServer server) {
+    public static void load(Map.@NotNull Entry<String, JsonElement> entry, MinecraftServer server) {
         String username = entry.getKey();
         JsonObject fakePlayer = entry.getValue().getAsJsonObject();
         JsonObject actions = new JsonObject();

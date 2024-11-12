@@ -34,18 +34,9 @@ public class ComponentTranslate {
         ComponentTranslate componentTranslate = new ComponentTranslate();
         if (color != null) style = style.withColor(color);
         if (componentTranslate.lang != null) {
-            Object[] callbackArgs = new Object[args.length];
-            for (int i = 0; i < args.length; i++) {
-                Object object = args[i];
-                if (object instanceof Component component) {
-                    object = component.getString();
-                }
-                callbackArgs[i] = object;
-            }
-            String callback = componentTranslate.lang.get(key).formatted(callbackArgs);
             try {
                 return Component
-                    .translatableWithFallback(key, callback, args)
+                    .translatableWithFallback(key, componentTranslate.lang.get(key), args)
                     .setStyle(style);
             } catch (ClassCastException | NullPointerException e) {
                 GcaExtension.LOGGER.error(e.getMessage(), e);

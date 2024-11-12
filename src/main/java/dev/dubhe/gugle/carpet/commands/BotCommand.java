@@ -17,10 +17,10 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import dev.dubhe.gugle.carpet.GcaExtension;
 import dev.dubhe.gugle.carpet.GcaSetting;
-import dev.dubhe.gugle.carpet.mixin.EntityInvoker;
-import dev.dubhe.gugle.carpet.mixin.PlayerAccessor;
 import dev.dubhe.gugle.carpet.tools.FakePlayerSerializer;
 import dev.dubhe.gugle.carpet.tools.FilesUtil;
+import dev.dubhe.gugle.carpet.mixin.EntityInvoker;
+import dev.dubhe.gugle.carpet.mixin.PlayerAccessor;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -36,16 +36,11 @@ import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.level.ClientInformation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.server.network.CommonListenerCookie;
 import net.minecraft.server.players.GameProfileCache;
-import net.minecraft.world.entity.ai.attributes.AttributeInstance;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.SkullBlockEntity;
 import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -54,6 +49,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+
+//#if MC>=12100
+import net.minecraft.server.network.CommonListenerCookie;
+import net.minecraft.server.level.ClientInformation;
+import net.minecraft.world.level.block.entity.SkullBlockEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+//#else
+//#endif
 
 public class BotCommand {
     public static final FilesUtil<String, BotInfo> BOT_INFO = new FilesUtil<>("bot", Object::toString, BotInfo.class);
@@ -445,6 +449,7 @@ public class BotCommand {
                     if (!CarpetSettings.allowSpawningOfflinePlayers) return false;
                     gameprofile = new GameProfile(UUIDUtil.createOfflinePlayerUUID(name), name);
                 }
+                //#if MC>=12100
                 GameProfile finalGP = gameprofile;
                 SkullBlockEntity.fetchGameProfile(gameprofile.getName()).thenAcceptAsync((p) -> {
                     System.out.println(1);
@@ -466,6 +471,22 @@ public class BotCommand {
                     instance.getAbilities().flying = botInfo.flying;
                     FakePlayerSerializer.applyActionPackFromJson(botInfo.actions, instance);
                 }, BOT_INFO.server);
+                //#else
+                //$$ if (worldIn == null) return false;
+                //$$ EntityPlayerMPFake instance = EntityPlayerMPFake.respawnFake(BOT_INFO.server, worldIn, gameprofile);
+                //$$ instance.fixStartingPosition = () -> instance.moveTo(botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
+                //$$ BOT_INFO.server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), instance);
+                //$$ instance.teleportTo(worldIn, botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
+                //$$ instance.setHealth(20.0F);
+                //$$ ((EntityInvoker) instance).invokerUnsetRemoved();
+                //$$ instance.setMaxUpStep(0.6F);
+                //$$ instance.gameMode.changeGameModeForPlayer(botInfo.mode);
+                //$$ BOT_INFO.server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(instance, (byte)((int)(instance.yHeadRot * 256.0F / 360.0F))), botInfo.dimType);
+                //$$ BOT_INFO.server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(instance), botInfo.dimType);
+                //$$ instance.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte)127);
+                //$$ instance.getAbilities().flying = botInfo.flying;
+                //$$ FakePlayerSerializer.applyActionPackFromJson(botInfo.actions, instance);
+                //#endif
                 success = true;
             } finally {
                 GameProfileCache.setUsesAuthentication(BOT_INFO.server.isDedicatedServer() && BOT_INFO.server.usesAuthentication());

@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "gca",
+  "id": "${id}",
   "version": "${version}",
-  "name": "GugleCarpetAddition",
+  "name": "${name}",
   "description": "carpet addition for minecraft",
   "authors": [
     "Gugle"
@@ -24,8 +24,8 @@
     "gca.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.7.4",
-    "minecraft": ">=1.19",
+    "fabricloader": ">=${fabric_loader}",
+    "minecraft": "${minecraft_support}",
     "carpet": "*"
   },
   "custom": {

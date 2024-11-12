@@ -1,7 +1,6 @@
 package dev.dubhe.gugle.carpet.tools;
 
 import dev.dubhe.gugle.carpet.mixin.AbstractContainerMenuAccessor;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -12,6 +11,11 @@ import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
+
+//#if MC>=12100
+import net.minecraft.core.component.DataComponents;
+//#else
+//#endif
 
 public class FakePlayerInventoryMenu extends ChestMenu {
     public FakePlayerInventoryMenu(int i, Inventory inventory, Container container) {
@@ -45,7 +49,13 @@ public class FakePlayerInventoryMenu extends ChestMenu {
                 if (FakePlayerInventoryMenu.moveToArmor(chestMenu, slotStack, 1) || moveToInventory(chestMenu, slotStack)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (slotStack.has(DataComponents.FOOD)) {
+            } else if (
+                //#if MC>=12100
+                slotStack.has(DataComponents.FOOD)
+                //#else
+                //$$ slotStack.getItem().isEdible()
+                //#endif
+            ) {
                 // 如果是食物，移动到副手
                 if (FakePlayerInventoryMenu.moveToOffHand(chestMenu, slotStack) || moveToInventory(chestMenu, slotStack)) {
                     return ItemStack.EMPTY;

@@ -17,13 +17,23 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+//#if MC>=12100
+//#else
+//$$ import net.minecraft.world.InteractionHand;
+//#endif
+
 @Mixin(SignBlock.class)
 abstract class SignBlockMixin {
     @Unique
     private final SignBlock gca$self = (SignBlock) (Object) this;
 
+    //#if MC>=12100
     @Inject(method = "useWithoutItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;playSound(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/core/BlockPos;Lnet/minecraft/sounds/SoundEvent;Lnet/minecraft/sounds/SoundSource;)V"), cancellable = true)
     public void use(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult blockHitResult, CallbackInfoReturnable<InteractionResult> cir) {
+        //#else
+        //$$ @Inject(method = "use", at = @At(value = "INVOKE",target = "Lnet/minecraft/world/level/Level;playSound(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/core/BlockPos;Lnet/minecraft/sounds/SoundEvent;Lnet/minecraft/sounds/SoundSource;)V"), cancellable = true)
+        //$$ public void use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit, CallbackInfoReturnable<InteractionResult> cir) {
+        //#endif
         if (GcaSetting.betterSignInteraction && gca$self instanceof WallSignBlock) {
             Direction direction = state.getValue(WallSignBlock.FACING);
             BlockPos blockPos = pos.relative(direction, -1);
@@ -32,7 +42,11 @@ abstract class SignBlockMixin {
             if (blockState.getBlock() instanceof WallSignBlock) {
                 return;
             }
+            //#if MC>=12100
             blockState.useWithoutItem(level, player, hitResult);
+            //#else
+            //$$ blockState.use(level, player, hand, hitResult);
+            //#endif
             cir.setReturnValue(InteractionResult.SUCCESS);
         }
     }
