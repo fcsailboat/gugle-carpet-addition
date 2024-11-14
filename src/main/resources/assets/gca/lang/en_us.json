@@ -81,6 +81,9 @@
   "carpet.rule.qnmdLC.name": "Set LC value",
   "carpet.rule.qnmdLC.desc": "What is the height value for setting the LC value",
 
+  "carpet.rule.fixedEndCrystalSync.name": "Fixed End Crystal Sync",
+  "carpet.rule.fixedEndCrystalSync.desc": "Fixed End Crystal Sync",
+
   "gca.action.attack.interval.12": "Attack every 12 gt: %s",
   "gca.action.attack.continuous": "Attack continuous: %s",
   "gca.action.use.continuous": "Use continuous: %s",

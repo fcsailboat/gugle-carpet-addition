@@ -175,4 +175,10 @@ public class GcaSetting {
         categories = {GCA, EXPERIMENTAL}
     )
     public static int qnmdLC = -1;
+
+    // 修复末地水晶同步
+    @Rule(
+        categories = {GCA, EXPERIMENTAL}
+    )
+    public static boolean fixedEndCrystalSync = false;
 }
