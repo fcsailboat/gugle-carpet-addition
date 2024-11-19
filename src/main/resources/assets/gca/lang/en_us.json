@@ -84,6 +84,12 @@
   "carpet.rule.fixedEndCrystalSync.name": "Fixed End Crystal Sync",
   "carpet.rule.fixedEndCrystalSync.desc": "Fixed End Crystal Sync",
 
+  "carpet.rule.welcomePlayer.name": "Welcome Player",
+  "carpet.rule.welcomePlayer.desc": "Welcome Player",
+
+  "carpet.rule.commandTransfer.name": "Command Transfer",
+  "carpet.rule.commandTransfer.desc": "/transfer command",
+
   "gca.action.attack.interval.12": "Attack every 12 gt: %s",
   "gca.action.attack.continuous": "Attack continuous: %s",
   "gca.action.use.continuous": "Use continuous: %s",

@@ -181,4 +181,19 @@ public class GcaSetting {
         categories = {GCA, EXPERIMENTAL}
     )
     public static boolean fixedEndCrystalSync = false;
+
+    // 欢迎玩家
+    @Rule(
+        categories = {GCA, EXPERIMENTAL}
+    )
+    public static boolean welcomePlayer = false;
+
+    //#if MC>=12100
+    // 服务器玩家转移命令
+    @Rule(
+        categories = {GCA, EXPERIMENTAL}
+    )
+    public static boolean commandTransfer = false;
+    //#else
+    //#endif
 }

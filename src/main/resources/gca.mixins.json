@@ -25,7 +25,8 @@
     "ServerLevelMixin",
     "ServerPlaceRecipeMixin",
     "SignBlockMixin",
-    "SlotMixin"
+    "SlotMixin",
+    "TransferCommandMixin"
   ],
   "server": [
   ],
