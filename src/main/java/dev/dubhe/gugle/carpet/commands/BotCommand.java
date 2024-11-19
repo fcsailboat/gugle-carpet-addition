@@ -60,8 +60,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 //#endif
 
 public class BotCommand {
-    public static final FilesUtil<String, BotInfo> BOT_INFO = new FilesUtil<>("bot", Object::toString, BotInfo.class);
-    public static final FilesUtil<String, BotGroupInfo> BOT_GROUP_INFO = new FilesUtil<>("botGroup", Object::toString, BotGroupInfo.class);
+    public static final FilesUtil.MapFile<String, BotInfo> BOT_INFO = new FilesUtil.MapFile<>("bot", Object::toString, BotInfo.class);
+    public static final FilesUtil.MapFile<String, BotGroupInfo> BOT_GROUP_INFO = new FilesUtil.MapFile<>("botGroup", Object::toString, BotGroupInfo.class);
 
     public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("bot")

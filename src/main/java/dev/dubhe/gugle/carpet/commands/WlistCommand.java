@@ -20,7 +20,7 @@ import net.minecraft.server.players.UserWhiteListEntry;
 import org.jetbrains.annotations.NotNull;
 
 public class WlistCommand {
-    public static final FilesUtil<String, Boolean> PERMISSION = new FilesUtil<>("wlist", Object::toString, Boolean.class);
+    public static final FilesUtil.MapFile<String, Boolean> PERMISSION = new FilesUtil.MapFile<>("wlist", Object::toString, Boolean.class);
     private static final SimpleCommandExceptionType ERROR_ALREADY_WHITELISTED = new SimpleCommandExceptionType(Component.translatable("commands.whitelist.add.failed"));
     private static final SimpleCommandExceptionType ERROR_NOT_WHITELISTED = new SimpleCommandExceptionType(Component.translatable("commands.whitelist.remove.failed"));
 
@@ -122,7 +122,7 @@ public class WlistCommand {
         return strings.length;
     }
 
-    public static boolean hasPermission(FilesUtil<String, Boolean> permission, @NotNull CommandSourceStack stack) {
+    public static boolean hasPermission(FilesUtil.MapFile<String, Boolean> permission, @NotNull CommandSourceStack stack) {
         if (stack.hasPermission(Commands.LEVEL_GAMEMASTERS)) return true;
         if (stack.isPlayer()) {
             ServerPlayer player = stack.getPlayer();

@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class LocCommand {
-    public static final FilesUtil<Long, LocPoint> LOC_POINT = new FilesUtil<>("loc", Long::decode, LocPoint.class);
+    public static final FilesUtil.MapFile<Long, LocPoint> LOC_POINT = new FilesUtil.MapFile<>("loc", Long::decode, LocPoint.class);
 
     public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(

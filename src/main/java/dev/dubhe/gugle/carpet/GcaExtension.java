@@ -18,11 +18,14 @@ import dev.dubhe.gugle.carpet.commands.SopCommand;
 import dev.dubhe.gugle.carpet.commands.TodoCommand;
 import dev.dubhe.gugle.carpet.commands.WhereisCommand;
 import dev.dubhe.gugle.carpet.commands.WlistCommand;
-import dev.dubhe.gugle.carpet.tools.DimTypeSerializer;
+import dev.dubhe.gugle.carpet.tools.WelcomeMessage;
+import dev.dubhe.gugle.carpet.tools.serializer.ChatFormattingSerializer;
+import dev.dubhe.gugle.carpet.tools.serializer.DimTypeSerializer;
 import dev.dubhe.gugle.carpet.tools.FakePlayerEnderChestContainer;
 import dev.dubhe.gugle.carpet.tools.FakePlayerInventoryContainer;
 import dev.dubhe.gugle.carpet.tools.FakePlayerResident;
 import net.fabricmc.api.ModInitializer;
+import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.nbt.CompoundTag;
@@ -52,6 +55,9 @@ public class GcaExtension implements CarpetExtension, ModInitializer {
     public static final Gson GSON = new GsonBuilder()
         .setPrettyPrinting()
         .registerTypeHierarchyAdapter(ResourceKey.class, new DimTypeSerializer())
+        .registerTypeHierarchyAdapter(ResourceLocation.class, new ResourceLocation.Serializer())
+        .registerTypeHierarchyAdapter(ChatFormatting.class, new ChatFormattingSerializer())
+        .registerTypeHierarchyAdapter(WelcomeMessage.MessageData.class, new WelcomeMessage.MessageData.Serializer())
         .create();
     public static String MOD_ID = "gca";
     public static final Logger LOGGER = LogManager.getLogger(MOD_ID);
@@ -76,6 +82,7 @@ public class GcaExtension implements CarpetExtension, ModInitializer {
         ));
         java.util.function.Consumer<ServerPlayer> consumer = ON_PLAYER_LOGGED_IN.remove(player.getGameProfile().getName());
         if (consumer != null) consumer.accept(player);
+        if (GcaSetting.welcomePlayer) WelcomeMessage.onPlayerLoggedIn(player);
     }
 
     @Override
@@ -86,11 +93,16 @@ public class GcaExtension implements CarpetExtension, ModInitializer {
     @Override
     public void onGameStarted() {
         CarpetServer.settingsManager.parseSettingsClass(GcaSetting.class);
-        BlistCommand.PERMISSION.init(CarpetServer.minecraft_server);
-        BotCommand.BOT_INFO.init(CarpetServer.minecraft_server);
-        LocCommand.LOC_POINT.init(CarpetServer.minecraft_server);
-        TodoCommand.TODO.init(CarpetServer.minecraft_server);
-        WlistCommand.PERMISSION.init(CarpetServer.minecraft_server);
+    }
+
+    @Override
+    public void onServerLoaded(MinecraftServer server) {
+        BlistCommand.PERMISSION.init(server);
+        BotCommand.BOT_INFO.init(server);
+        LocCommand.LOC_POINT.init(server);
+        TodoCommand.TODO.init(server);
+        WlistCommand.PERMISSION.init(server);
+        WelcomeMessage.WELCOME_MESSAGE.init(server);
     }
 
     @Override
@@ -154,5 +166,13 @@ public class GcaExtension implements CarpetExtension, ModInitializer {
     @Override
     public void onInitialize() {
         CarpetServer.manageExtension(this);
+    }
+
+    public static @NotNull ResourceLocation parseLocation(String string){
+        //#if MC>=12100
+        return ResourceLocation.parse(string);
+        //#else
+        //$$ return new ResourceLocation(string);
+        //#endif
     }
 }

@@ -20,18 +20,13 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
 
-public class FilesUtil<K extends Comparable<K>, V> {
+public abstract class FilesUtil {
     private static final Gson GSON = GcaExtension.GSON;
     public MinecraftServer server = null;
-    public final Map<K, V> map = new TreeMap<>();
     private final String gcaJson;
-    private final Function<String, K> keyCodec;
-    private final Class<V> vClass;
 
-    public FilesUtil(String jsonPrefix, Function<String, K> keyCodec, Class<V> vClass) {
+    public FilesUtil(String jsonPrefix) {
         this.gcaJson = "%s.gca.json".formatted(jsonPrefix);
-        this.keyCodec = keyCodec;
-        this.vClass = vClass;
     }
 
     public void init(@NotNull CommandContext<CommandSourceStack> context) {
@@ -39,28 +34,95 @@ public class FilesUtil<K extends Comparable<K>, V> {
         this.init(server1);
     }
 
-    public void init(MinecraftServer server1) {
+    protected abstract void createDefault(@NotNull File file) throws IOException;
+
+    protected abstract void init(@NotNull BufferedReader bfr);
+
+    public void init(@NotNull MinecraftServer server1) {
         if (server1 == server) return;
         this.server = server1;
-        this.map.clear();
         File file = this.server.getWorldPath(LevelResource.ROOT).resolve(this.gcaJson).toFile();
-        if (!file.isFile()) return;
-        try (BufferedReader bfr = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
-            for (Map.Entry<String, JsonElement> entry : FilesUtil.GSON.fromJson(bfr, JsonObject.class).entrySet()) {
-                this.map.put(keyCodec.apply(entry.getKey()), FilesUtil.GSON.fromJson(entry.getValue(), this.vClass));
+        try {
+            if (!file.exists()) {
+                this.createDefault(file);
+                return;
+            }
+            try (BufferedReader bfr = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+                this.init(bfr);
             }
         } catch (IOException e) {
             GcaExtension.LOGGER.error(e.getMessage(), e);
         }
     }
 
+    protected abstract void save(@NotNull BufferedWriter bw);
+
     public void save() {
         if (this.server == null) return;
         File file = this.server.getWorldPath(LevelResource.ROOT).resolve(this.gcaJson).toFile();
         try (BufferedWriter bw = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
-            FilesUtil.GSON.toJson(this.map, bw);
+            this.save(bw);
         } catch (IOException e) {
             GcaExtension.LOGGER.error(e.getMessage(), e);
+        }
+    }
+
+    public static class MapFile<K extends Comparable<K>, V> extends FilesUtil {
+        public final Map<K, V> map = new TreeMap<>();
+        private final Function<String, K> keyCodec;
+        private final Class<V> vClass;
+
+        public MapFile(String jsonPrefix, Function<String, K> keyCodec, Class<V> vClass) {
+            super(jsonPrefix);
+            this.keyCodec = keyCodec;
+            this.vClass = vClass;
+        }
+
+        @Override
+        protected void createDefault(@NotNull File file) throws IOException {
+            try (BufferedWriter bw = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
+                this.save(bw);
+            }
+        }
+
+        @Override
+        protected void init(@NotNull BufferedReader bfr) {
+            this.map.clear();
+            for (Map.Entry<String, JsonElement> entry : FilesUtil.GSON.fromJson(bfr, JsonObject.class).entrySet()) {
+                this.map.put(keyCodec.apply(entry.getKey()), FilesUtil.GSON.fromJson(entry.getValue(), this.vClass));
+            }
+        }
+
+        @Override
+        protected void save(@NotNull BufferedWriter bw) {
+            FilesUtil.GSON.toJson(this.map, bw);
+        }
+    }
+
+    public static class ObjFile<T> extends FilesUtil {
+        public T obj;
+
+        public ObjFile(String jsonPrefix, T defaultObj) {
+            super(jsonPrefix);
+            this.obj = defaultObj;
+        }
+
+        @Override
+        protected void createDefault(@NotNull File file) throws IOException {
+            try (BufferedWriter bw = Files.newBufferedWriter(file.toPath(), StandardCharsets.UTF_8)) {
+                this.save(bw);
+            }
+        }
+
+        @Override
+        protected void init(@NotNull BufferedReader bfr) {
+            //noinspection unchecked
+            this.obj = (T) FilesUtil.GSON.fromJson(bfr, this.obj.getClass());
+        }
+
+        @Override
+        protected void save(@NotNull BufferedWriter bw) {
+            FilesUtil.GSON.toJson(this.obj, bw);
         }
     }
 }

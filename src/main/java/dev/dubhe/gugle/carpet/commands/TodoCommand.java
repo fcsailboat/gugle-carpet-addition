@@ -26,7 +26,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
 public class TodoCommand {
-    public static final FilesUtil<Long, Todo> TODO = new FilesUtil<>("todo", Long::decode, Todo.class);
+    public static final FilesUtil.MapFile<Long, Todo> TODO = new FilesUtil.MapFile<>("todo", Long::decode, Todo.class);
 
     public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
