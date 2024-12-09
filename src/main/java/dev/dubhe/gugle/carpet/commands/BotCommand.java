@@ -34,6 +34,10 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
+//#if MC>=12104
+//$$ import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
+//$$ import java.util.Set;
+//#endif
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -240,8 +244,8 @@ public class BotCommand {
         for (String botName : botNames) {
             ServerPlayer player = source.getServer().getPlayerList().getPlayerByName(botName);
             if (player == null) continue;
-            if (!(player instanceof EntityPlayerMPFake)) continue;
-            player.kill();
+            if (!(player instanceof EntityPlayerMPFake fake)) continue;
+            fake.kill(Component.literal("Killed"));
         }
         return 1;
     }
@@ -459,14 +463,22 @@ public class BotCommand {
                     EntityPlayerMPFake instance = EntityPlayerMPFake.respawnFake(BOT_INFO.server, worldIn, current, ClientInformation.createDefault());
                     instance.fixStartingPosition = () -> instance.moveTo(botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
                     BOT_INFO.server.getPlayerList().placeNewPlayer(new FakeClientConnection(PacketFlow.SERVERBOUND), instance, new CommonListenerCookie(current, 0, instance.clientInformation(), false));
+                    //#if MC>=12104
+                    //$$ instance.teleportTo(worldIn, botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, Set.of(), botInfo.facing.y, botInfo.facing.x, true);
+                    //#else
                     instance.teleportTo(worldIn, botInfo.pos.x, botInfo.pos.y, botInfo.pos.z, botInfo.facing.y, botInfo.facing.x);
+                    //#endif
                     instance.setHealth(20.0F);
                     ((EntityInvoker) instance).invokerUnsetRemoved();
                     AttributeInstance attribute = instance.getAttribute(Attributes.STEP_HEIGHT);
                     if (attribute != null) attribute.setBaseValue(0.6000000238418579);
                     instance.gameMode.changeGameModeForPlayer(botInfo.mode);
                     BOT_INFO.server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(instance, (byte) ((int) (instance.yHeadRot * 256.0F / 360.0F))), botInfo.dimType);
+                    //#if MC>=12104
+                    //$$ BOT_INFO.server.getPlayerList().broadcastAll(ClientboundEntityPositionSyncPacket.of(instance), botInfo.dimType);
+                    //#else
                     BOT_INFO.server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(instance), botInfo.dimType);
+                    //#endif
                     instance.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
                     instance.getAbilities().flying = botInfo.flying;
                     FakePlayerSerializer.applyActionPackFromJson(botInfo.actions, instance);

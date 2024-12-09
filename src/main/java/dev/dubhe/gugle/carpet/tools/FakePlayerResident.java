@@ -15,7 +15,11 @@ import dev.dubhe.gugle.carpet.mixin.PlayerAccessor;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.game.ClientboundRotateHeadPacket;
+//#if MC>=12104
+//$$ import net.minecraft.network.protocol.game.ClientboundEntityPositionSyncPacket;
+//#else
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
+//#endif
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.players.GameProfileCache;
 import net.minecraft.world.entity.player.Player;
@@ -76,7 +80,11 @@ public class FakePlayerResident {
             AttributeInstance attribute = playerMPFake.getAttribute(Attributes.STEP_HEIGHT);
             if (attribute != null) attribute.setBaseValue(0.6F);
             server.getPlayerList().broadcastAll(new ClientboundRotateHeadPacket(playerMPFake, ((byte) (playerMPFake.yHeadRot * 256.0F / 360.0F))), playerMPFake.serverLevel().dimension());
+            //#if MC>=12104
+            //$$ server.getPlayerList().broadcastAll(ClientboundEntityPositionSyncPacket.of(playerMPFake), playerMPFake.serverLevel().dimension());
+            //#else
             server.getPlayerList().broadcastAll(new ClientboundTeleportEntityPacket(playerMPFake), playerMPFake.serverLevel().dimension());
+            //#endif
             playerMPFake.getEntityData().set(PlayerAccessor.getCustomisationData(), (byte) 127);
 
             FakePlayerSerializer.applyActionPackFromJson(actions, playerMPFake);
