@@ -2,6 +2,9 @@ import groovy.json.JsonSlurper
 
 pluginManagement {
     repositories {
+        mavenLocal()
+        mavenCentral()
+        gradlePluginPortal()
         maven {
             name = 'Fabric'
             url = 'https://maven.fabricmc.net/'
@@ -9,9 +12,6 @@ pluginManagement {
         maven {
             name = 'Jitpack'
             url = "https://jitpack.io"
-        }
-        maven {
-            url 'https://maven.aliyun.com/repository/public/'
         }
         resolutionStrategy {
             eachPlugin {
@@ -23,8 +23,6 @@ pluginManagement {
                 }
             }
         }
-        mavenCentral()
-        gradlePluginPortal()
     }
 }
 

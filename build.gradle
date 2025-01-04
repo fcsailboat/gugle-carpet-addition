@@ -5,10 +5,10 @@ plugins {
 }
 
 preprocess {
-    def mc1200 = createNode("1.20", 1_20_00, "official")
-    def mc1210 = createNode("1.21", 1_21_00, "official")
+    def mc1201 = createNode("1.20.1", 1_20_01, "official")
+    def mc1211 = createNode("1.21.1", 1_21_01, "official")
     def mc1214 = createNode("1.21.4", 1_21_04, "official")
 
-    mc1200.link(mc1210, null)
-    mc1214.link(mc1210, null)
+    mc1201.link(mc1211, null)
+    mc1214.link(mc1211, null)
 }
