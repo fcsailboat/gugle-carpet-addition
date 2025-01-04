@@ -12,6 +12,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 
+//#if MC>=12104
+//$$ import net.minecraft.world.item.equipment.Equippable;
+//$$ import net.minecraft.world.entity.EquipmentSlot;
+//#endif
 //#if MC>=12100
 import net.minecraft.core.component.DataComponents;
 //#else
@@ -40,8 +44,8 @@ public class FakePlayerInventoryMenu extends ChestMenu {
                 }
             } else if (slotStack.getItem() instanceof ArmorItem armorItem) {
                 // 如果是盔甲，移动到盔甲槽
-                int ordinal = armorItem.getType().ordinal();
-                if (FakePlayerInventoryMenu.moveToArmor(chestMenu, slotStack, ordinal) || moveToInventory(chestMenu, slotStack)) {
+                int ordinal = getArmorOrdinal(armorItem);
+                if (ordinal >= 0 && FakePlayerInventoryMenu.moveToArmor(chestMenu, slotStack, ordinal) || moveToInventory(chestMenu, slotStack)) {
                     return ItemStack.EMPTY;
                 }
             } else if (slotStack.is(Items.ELYTRA)) {
@@ -76,6 +80,27 @@ public class FakePlayerInventoryMenu extends ChestMenu {
             }
         }
         return remainingItem;
+    }
+
+    private static int getArmorOrdinal(@NotNull ArmorItem armorItem) {
+        int ordinal;
+        //#if MC>=12104
+        //$$ ordinal = -1;
+        //$$ Equippable equippable = armorItem.components().get(DataComponents.EQUIPPABLE);
+        //$$ if (equippable != null) {
+        //$$     EquipmentSlot slot1 = equippable.slot();
+        //$$     ordinal = switch (slot1) {
+        //$$         case HEAD -> 0;
+        //$$         case CHEST -> 1;
+        //$$         case LEGS -> 2;
+        //$$         case FEET -> 3;
+        //$$         default -> -1;
+        //$$     };
+        //$$ }
+        //#else
+        ordinal = armorItem.getType().ordinal();
+        //#endif
+        return ordinal;
     }
 
     // 移动到副手

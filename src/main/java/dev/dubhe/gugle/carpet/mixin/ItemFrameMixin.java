@@ -25,6 +25,11 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+//#if MC>=12104
+//$$ import net.minecraft.server.level.ServerLevel;
+//#else
+//#endif
+
 @Mixin(ItemFrame.class)
 abstract class ItemFrameMixin extends Entity {
     public ItemFrameMixin(EntityType<?> entityType, Level level) {
@@ -32,14 +37,26 @@ abstract class ItemFrameMixin extends Entity {
     }
 
     @Inject(
-        method = {"dropItem(Lnet/minecraft/world/entity/Entity;Z)V"},
+        method =
+            //#if MC>=12104
+            //$$ "dropItem(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/Entity;Z)V",
+            //#else
+            "dropItem(Lnet/minecraft/world/entity/Entity;Z)V",
+            //#endif
         at = {@At(
             value = "INVOKE",
             target = "Lnet/minecraft/world/entity/decoration/ItemFrame;setItem(Lnet/minecraft/world/item/ItemStack;)V"
         )},
         cancellable = true
     )
-    private void dropItem(Entity entity, boolean bl, CallbackInfo ci) {
+    private void dropItem(
+        //#if MC>=12104
+        //$$ ServerLevel serverLevel,
+        //#endif
+        Entity entity,
+        boolean bl,
+        CallbackInfo ci
+    ) {
         if (GcaSetting.betterItemFrameInteraction) {
             if (entity instanceof Player player) {
                 if (!player.getMainHandItem().is(Items.CACTUS) && !player.getOffhandItem().is(Items.CACTUS)) {

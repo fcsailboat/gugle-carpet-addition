@@ -1,3 +1,7 @@
+plugins {
+    id "me.modmuss50.mod-publish-plugin" version "0.8.3"
+}
+
 apply plugin: 'fabric-loom'
 apply plugin: 'com.replaymod.preprocess'
 
@@ -5,16 +9,14 @@ int mcVersion = 1
 
 ext {
     getVersionSuffix = {
-        String versionSuffix = ''
-        if (System.getenv("BUILD_RELEASE") != "true") {
-            def PRE_VERSION = System.getenv("PRE_VERSION")
-            if (PRE_VERSION != null && PRE_VERSION != "" && PRE_VERSION != "null") {
-                versionSuffix += ("+pre-release." + PRE_VERSION)
-            } else {
-                String buildNumber = System.getenv("BUILD_ID")
-                versionSuffix += buildNumber != null ? ('+build.' + buildNumber) : '+SNAPSHOT'
-            }
+        String buildNumber
+        String buildType = 'build'
+        if (System.getenv("CI_BUILD") == 'false') buildNumber = null
+        else {
+            if (System.getenv("PR_BUILD") != 'false') buildType = 'pr'
+            buildNumber = System.getenv("GITHUB_RUN_NUMBER")
         }
+        String versionSuffix = (buildNumber != null ? "+${buildType}.${buildNumber}" : "")
         return versionSuffix
     }
 }
@@ -30,10 +32,6 @@ configurations {
 
 repositories {
     mavenLocal()
-    maven {
-        name 'aliyunMavenCentralMirror'
-        url 'https://maven.aliyun.com/repository/central'
-    }
     maven {
         name 'mavenCentral'
         url 'https://repo1.maven.org/maven2/'
@@ -127,6 +125,25 @@ java {
     withSourcesJar()
     sourceCompatibility = SOURCE_JAVA_VERSION
     targetCompatibility = TARGET_JAVA_VERSION
+}
+
+publishMods {
+    file = remapJar.archiveFile
+    changelog = "Changelog"
+    type = BETA
+    modLoaders.add("fabric")
+
+    curseforge {
+        accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")
+        projectId = "662867"
+        minecraftVersions.add(project.game_versions)
+    }
+
+    modrinth {
+        accessToken = providers.environmentVariable("MODRINTH_TOKEN")
+        projectId = "UHjbX5mk"
+        minecraftVersions.add(project.game_versions)
+    }
 }
 
 jar {

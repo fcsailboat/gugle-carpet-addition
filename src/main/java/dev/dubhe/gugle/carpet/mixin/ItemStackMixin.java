@@ -5,7 +5,11 @@ import dev.dubhe.gugle.carpet.GcaSetting;
 import dev.dubhe.gugle.carpet.tools.FakePlayerAutoReplaceTool;
 import dev.dubhe.gugle.carpet.tools.FakePlayerAutoReplenishment;
 import net.minecraft.world.InteractionHand;
+//#if MC>=12104
+//$$ import net.minecraft.world.InteractionResult;
+//#else
 import net.minecraft.world.InteractionResultHolder;
+//#endif
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -43,7 +47,13 @@ abstract class ItemStackMixin {
 
 
     @Inject(method = "use", at = @At("HEAD"))
-    private void use(Level level, Player player, InteractionHand usedHand, CallbackInfoReturnable<InteractionResultHolder<ItemStack>> cir) {
+    private void use(Level level, Player player, InteractionHand usedHand, CallbackInfoReturnable<
+        //#if MC>=12104
+        //$$ InteractionResult
+        //#else
+        InteractionResultHolder<ItemStack>
+        //#endif
+        > cir) {
         if (GcaSetting.fakePlayerAutoReplenishment && player instanceof EntityPlayerMPFake fakePlayer) {
             FakePlayerAutoReplenishment.autoReplenishment(fakePlayer);
         }
