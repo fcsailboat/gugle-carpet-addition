@@ -39,7 +39,7 @@ abstract class WanderingTraderMixin {
     private int spawn0(@NotNull RandomSource instance, int i) {
         int result = instance.nextInt(i);
         if (result > this.spawnChance) {
-            this.gca$sendMsg("Probability not met, expected i > %s, but obtained %s".formatted(this.spawnChance, result));
+            this.gca$sendMsg("Probability not met, expected i <= %s, but obtained %s".formatted(this.spawnChance, result));
         }
         return result;
     }
@@ -48,7 +48,7 @@ abstract class WanderingTraderMixin {
     private int spawn1(@NotNull RandomSource instance, int i) {
         int result = instance.nextInt(i);
         if (result != 0) {
-            this.gca$sendMsg("Probability not met, expected i != 0, but obtained %s".formatted(result));
+            this.gca$sendMsg("Probability not met, expected i == 0, but obtained %s".formatted(result));
         }
         return result;
     }
