@@ -132,6 +132,7 @@ publishMods {
     changelog = "Changelog"
     type = BETA
     modLoaders.add("fabric")
+    modLoaders.add("quilt")
 
     curseforge {
         accessToken = providers.environmentVariable("CURSEFORGE_TOKEN")

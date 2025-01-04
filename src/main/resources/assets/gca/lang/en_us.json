@@ -87,6 +87,9 @@
   "carpet.rule.welcomePlayer.name": "Welcome Player",
   "carpet.rule.welcomePlayer.desc": "Welcome Player",
 
+  "carpet.rule.wanderingTraderSpawnFailedWarning.name": "Wandering Trader Spawn Failed Warning",
+  "carpet.rule.wanderingTraderSpawnFailedWarning.desc": "Wandering Trader Spawn Failed Warning",
+
   "carpet.rule.commandTransfer.name": "Command Transfer",
   "carpet.rule.commandTransfer.desc": "/transfer command",
 
