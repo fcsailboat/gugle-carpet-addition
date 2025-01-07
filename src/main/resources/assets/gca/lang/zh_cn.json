@@ -92,6 +92,10 @@
 
   "carpet.rule.wanderingTraderSpawnFailedWarning.name": "流浪商人生成失败提醒",
   "carpet.rule.wanderingTraderSpawnFailedWarning.desc": "在流浪商人生成失败进行提醒，并告诉玩家生成失败的原因",
+  "carpet.rule.wanderingTraderSpawnFailedWarning.tip.01": "流浪商人生成失败，原因：",
+  "carpet.rule.wanderingTraderSpawnFailedWarning.tip.02": "未达到概率，预期为 %s ，但得到了 %s",
+  "carpet.rule.wanderingTraderSpawnFailedWarning.tip.03": "生物群系不符合要求，当前玩家：%s",
+  "carpet.rule.wanderingTraderSpawnFailedWarning.tip.04": "生成空间不足，当前玩家：%s",
 
   "gca.action.attack.interval.12": "间隔 12 gt攻击：%s",
   "gca.action.attack.continuous": "一直左键： %s",
