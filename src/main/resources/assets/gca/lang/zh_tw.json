@@ -92,6 +92,14 @@
 
   "carpet.rule.wanderingTraderSpawnFailedWarning.name": "Wandering Trader Spawn Failed Warning",
   "carpet.rule.wanderingTraderSpawnFailedWarning.desc": "Wandering Trader Spawn Failed Warning",
+  "carpet.rule.wanderingTraderSpawnFailedWarning.tip.01": "Wandering Trader Spawn Failed, Reason: ",
+  "carpet.rule.wanderingTraderSpawnFailedWarning.tip.02": "Probability not met, expected %s, but obtained %s",
+  "carpet.rule.wanderingTraderSpawnFailedWarning.tip.03": "The biome does not meet the requirements, Current player: %s",
+  "carpet.rule.wanderingTraderSpawnFailedWarning.tip.04": "Not has enough space, Current player: %s",
+
+  "carpet.rule.wanderingTraderSpawnRemind.name": "Wandering Trader Spawn Remind",
+  "carpet.rule.wanderingTraderSpawnRemind.desc": "Wandering Trader Spawn Remind",
+  "carpet.rule.wanderingTraderSpawnRemind.tip": "Wandering Trader Spawn at %s",
 
   "gca.action.attack.interval.12": "間隔 12 gt攻擊：%s",
   "gca.action.attack.continuous": "連續攻擊：%s",

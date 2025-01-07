@@ -1,17 +1,25 @@
 package dev.dubhe.gugle.carpet.mixin;
 
 import dev.dubhe.gugle.carpet.GcaSetting;
+import dev.dubhe.gugle.carpet.api.tools.text.Color;
+import dev.dubhe.gugle.carpet.api.tools.text.ComponentTranslate;
 import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.ai.village.poi.PoiManager;
+import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.npc.WanderingTraderSpawner;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -19,8 +27,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
-@Debug(export = true, print = true)
+import java.util.Optional;
+
+
 @Mixin(WanderingTraderSpawner.class)
 abstract class WanderingTraderMixin {
     @Unique
@@ -39,7 +50,15 @@ abstract class WanderingTraderMixin {
     private int spawn0(@NotNull RandomSource instance, int i) {
         int result = instance.nextInt(i);
         if (result > this.spawnChance) {
-            this.gca$sendMsg("Probability not met, expected i <= %s, but obtained %s".formatted(this.spawnChance, result));
+            this.gca$sendMsg(
+                ComponentTranslate.trans(
+                    "carpet.rule.wanderingTraderSpawnFailedWarning.tip.02",
+                    Color.YELLOW,
+                    Style.EMPTY,
+                    "i <= %s".formatted(this.spawnChance),
+                    result
+                )
+            );
         }
         return result;
     }
@@ -48,7 +67,15 @@ abstract class WanderingTraderMixin {
     private int spawn1(@NotNull RandomSource instance, int i) {
         int result = instance.nextInt(i);
         if (result != 0) {
-            this.gca$sendMsg("Probability not met, expected i == 0, but obtained %s".formatted(result));
+            this.gca$sendMsg(
+                ComponentTranslate.trans(
+                    "carpet.rule.wanderingTraderSpawnFailedWarning.tip.02",
+                    Color.YELLOW,
+                    Style.EMPTY,
+                    "i == 0",
+                    result
+                )
+            );
         }
         return result;
     }
@@ -62,25 +89,76 @@ abstract class WanderingTraderMixin {
 
     @Inject(method = "spawn", at = @At(value = "RETURN", ordinal = 2))
     private void spawn2(ServerLevel serverLevel, CallbackInfoReturnable<Boolean> cir) {
-        this.gca$sendMsg("The biome does not meet the requirements, Current player: %s".formatted(this.gca$player.getScoreboardName()));
+        this.gca$sendMsg(
+            ComponentTranslate.trans(
+                "carpet.rule.wanderingTraderSpawnFailedWarning.tip.03",
+                Color.YELLOW,
+                Style.EMPTY,
+                this.gca$player.getDisplayName()
+            )
+        );
     }
 
-    @Inject(method = "spawn", at = @At(value = "RETURN", ordinal = 4))
-    private void spawn3(ServerLevel serverLevel, CallbackInfoReturnable<Boolean> cir) {
-        this.gca$sendMsg("Not has enough space, Current player: %s".formatted(this.gca$player.getScoreboardName()));
+    @Inject(method = "spawn", at = @At(value = "RETURN", ordinal = 3))
+    private void spawnSuccess(ServerLevel serverLevel, CallbackInfoReturnable<Boolean> cir) {
+        this.gca$sendMsg(
+            ComponentTranslate.trans(
+                "carpet.rule.wanderingTraderSpawnFailedWarning.tip.04",
+                Color.YELLOW,
+                Style.EMPTY,
+                this.gca$player.getDisplayName()
+            )
+        );
+    }
+
+    @SuppressWarnings("InjectLocalCaptureCanBeReplacedWithLocal")
+    @Inject(method = "spawn", at = @At(value = "RETURN", ordinal = 3), locals = LocalCapture.CAPTURE_FAILHARD)
+    private void spawn3(
+        ServerLevel serverLevel,
+        CallbackInfoReturnable<Boolean> cir,
+        Player player,
+        BlockPos blockPos,
+        int i,
+        PoiManager poiManager,
+        @SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<BlockPos> optional,
+        BlockPos blockPos2,
+        BlockPos blockPos3
+    ) {
+        if (!GcaSetting.wanderingTraderSpawnRemind) return;
+        Vec3 center = blockPos3.getCenter();
+        this.gca$server.getPlayerList().broadcastSystemMessage(
+            ComponentTranslate.trans(
+                "carpet.rule.wanderingTraderSpawnRemind.tip",
+                Color.YELLOW,
+                Style.EMPTY,
+                Component.literal("[%.1f, %.1f, %.1f]".formatted(center.x, center.y, center.z))
+                    .withStyle(
+                        Style.EMPTY
+                            .withColor(ChatFormatting.GREEN)
+                            .withClickEvent(
+                                new ClickEvent(
+                                    ClickEvent.Action.SUGGEST_COMMAND,
+                                    "/tp @s %.1f %.1f %.1f".formatted(center.x, center.y, center.z)
+                                )
+                            )
+                    )
+            ),
+            false
+        );
     }
 
     @Unique
-    private void gca$sendMsg(String msg) {
+    private void gca$sendMsg(Component msg) {
         if (!GcaSetting.wanderingTraderSpawnFailedWarning) return;
         if (this.gca$server == null) return;
         this.gca$server.getPlayerList().broadcastSystemMessage(
-            Component.literal("Wandering Trader Spawn Failed, Reason: ").withStyle(ChatFormatting.YELLOW),
+            ComponentTranslate.trans(
+                "carpet.rule.wanderingTraderSpawnFailedWarning.tip.01",
+                Color.YELLOW,
+                Style.EMPTY
+            ),
             false
         );
-        this.gca$server.getPlayerList().broadcastSystemMessage(
-            Component.literal(msg).withStyle(ChatFormatting.YELLOW),
-            false
-        );
+        this.gca$server.getPlayerList().broadcastSystemMessage(msg, false);
     }
 }
