@@ -194,6 +194,12 @@ public class GcaSetting {
     )
     public static boolean wanderingTraderSpawnFailedWarning = false;
 
+    // 流浪商人生成提醒
+    @Rule(
+        categories = {GCA, EXPERIMENTAL}
+    )
+    public static boolean wanderingTraderSpawnRemind = false;
+
     //#if MC>=12100
     // 服务器玩家转移命令
     @Rule(
