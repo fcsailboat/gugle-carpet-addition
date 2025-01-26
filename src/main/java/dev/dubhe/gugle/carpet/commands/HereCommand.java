@@ -4,6 +4,7 @@ import carpet.utils.CommandHelper;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.context.CommandContext;
 import dev.dubhe.gugle.carpet.GcaSetting;
+import dev.dubhe.gugle.carpet.GcaValidators;
 import dev.dubhe.gugle.carpet.tools.PosUtils;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -14,6 +15,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class HereCommand {
     public static void register(@NotNull CommandDispatcher<CommandSourceStack> dispatcher) {
+        if (GcaValidators.CARPET_AMS_ADDITION) {
+            return;
+        }
         dispatcher.register(
             Commands.literal("here")
                 .requires(stack -> CommandHelper.canUseCommand(stack, GcaSetting.commandHere))

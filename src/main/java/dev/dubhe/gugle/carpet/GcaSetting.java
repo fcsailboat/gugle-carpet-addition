@@ -90,7 +90,8 @@ public class GcaSetting {
     @Rule(
         categories = {GCA, EXPERIMENTAL, BOT, COMMAND},
         options = {"ops", "0", "1", "2", "3", "4", "true", "false"},
-        validators = Validators.CommandLevel.class
+        validators = Validators.CommandLevel.class,
+        conditions = GcaValidators.CarpetAmsAdditionLoaded.class
     )
     public static String commandHere = "ops";
 
