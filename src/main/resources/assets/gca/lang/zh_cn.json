@@ -99,7 +99,7 @@
 
   "carpet.rule.wanderingTraderSpawnRemind.name": "流浪商人生成提醒",
   "carpet.rule.wanderingTraderSpawnRemind.desc": "流浪商人生成提醒",
-  "carpet.rule.wanderingTraderSpawnRemind.tip": "流浪商人在 %s 处生成",
+  "carpet.rule.wanderingTraderSpawnRemind.tip": "流浪商人生成成功，位置为 %s ，同时生成了 %s 只行商羊驼",
 
   "gca.action.attack.interval.12": "间隔 12 gt攻击：%s",
   "gca.action.attack.continuous": "一直左键： %s",

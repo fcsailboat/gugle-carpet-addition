@@ -96,7 +96,7 @@
 
   "carpet.rule.wanderingTraderSpawnRemind.name": "Wandering Trader Spawn Remind",
   "carpet.rule.wanderingTraderSpawnRemind.desc": "Wandering Trader Spawn Remind",
-  "carpet.rule.wanderingTraderSpawnRemind.tip": "Wandering Trader Spawn at %s",
+  "carpet.rule.wanderingTraderSpawnRemind.tip": "The Wandering Trader was successfully generated at %s, and %s Trader Llama were also generated",
 
   "carpet.rule.commandTransfer.name": "Command Transfer",
   "carpet.rule.commandTransfer.desc": "/transfer command",

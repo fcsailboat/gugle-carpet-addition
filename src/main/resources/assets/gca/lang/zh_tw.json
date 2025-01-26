@@ -99,7 +99,7 @@
 
   "carpet.rule.wanderingTraderSpawnRemind.name": "Wandering Trader Spawn Remind",
   "carpet.rule.wanderingTraderSpawnRemind.desc": "Wandering Trader Spawn Remind",
-  "carpet.rule.wanderingTraderSpawnRemind.tip": "Wandering Trader Spawn at %s",
+  "carpet.rule.wanderingTraderSpawnRemind.tip": "The Wandering Trader was successfully generated at %s, and %s Trader Llama were also generated",
 
   "gca.action.attack.interval.12": "間隔 12 gt攻擊：%s",
   "gca.action.attack.continuous": "連續攻擊：%s",

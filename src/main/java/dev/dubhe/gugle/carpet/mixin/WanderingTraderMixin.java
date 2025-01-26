@@ -26,6 +26,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
@@ -38,12 +39,15 @@ abstract class WanderingTraderMixin {
     private MinecraftServer gca$server = null;
     @Unique
     private ServerPlayer gca$player = null;
+    @Unique
+    private int gca$llama = 0;
     @Shadow
     private int spawnChance;
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void spawn(@NotNull ServerLevel serverLevel, boolean bl, boolean bl2, CallbackInfoReturnable<Integer> cir) {
         this.gca$server = serverLevel.getServer();
+        this.gca$llama = 0;
     }
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/RandomSource;nextInt(I)I"))
@@ -99,7 +103,7 @@ abstract class WanderingTraderMixin {
         );
     }
 
-    @Inject(method = "spawn", at = @At(value = "RETURN", ordinal = 3))
+    @Inject(method = "spawn", at = @At(value = "RETURN", ordinal = 4))
     private void spawnSuccess(ServerLevel serverLevel, CallbackInfoReturnable<Boolean> cir) {
         this.gca$sendMsg(
             ComponentTranslate.trans(
@@ -109,6 +113,11 @@ abstract class WanderingTraderMixin {
                 this.gca$player.getDisplayName()
             )
         );
+    }
+
+    @Inject(method = "tryToSpawnLlamaFor", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/animal/horse/TraderLlama;setLeashedTo(Lnet/minecraft/world/entity/Entity;Z)V"))
+    private void tryToSpawnLlamaFor(ServerLevel serverLevel, WanderingTrader wanderingTrader, int i, CallbackInfo ci) {
+        this.gca$llama++;
     }
 
     @SuppressWarnings("InjectLocalCaptureCanBeReplacedWithLocal")
@@ -141,7 +150,9 @@ abstract class WanderingTraderMixin {
                                     "/tp @s %.1f %.1f %.1f".formatted(center.x, center.y, center.z)
                                 )
                             )
-                    )
+                    ),
+                Component.literal(String.valueOf(this.gca$llama))
+                    .withStyle(ChatFormatting.GREEN)
             ),
             false
         );
