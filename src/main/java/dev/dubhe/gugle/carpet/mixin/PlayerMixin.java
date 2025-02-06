@@ -17,16 +17,10 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import java.util.Map;
-
-
-//#if MC>=12100
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-//#else
-//$$ import org.spongepowered.asm.mixin.injection.Redirect;
-//#endif
+
+import java.util.Map;
 
 @Mixin(Player.class)
 abstract class PlayerMixin {
@@ -47,7 +41,6 @@ abstract class PlayerMixin {
         }
     }
 
-    //#if MC>=12100
     @WrapOperation(method = "interactOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;interact(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;"))
     private InteractionResult interactOn(Entity entity, @NotNull Player player, InteractionHand hand, Operation<InteractionResult> original) {
         if (player.level().isClientSide()) {
@@ -67,26 +60,6 @@ abstract class PlayerMixin {
         }
         return original.call(entity, player, hand);
     }
-    //#else
-    //$$ @Redirect(method = "interactOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;interact(Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/InteractionHand;)Lnet/minecraft/world/InteractionResult;"))
-    //$$ private InteractionResult interactOn(Entity entity, @NotNull Player player, InteractionHand hand) {
-    //$$     if (player.level().isClientSide()) {
-    //$$         if (entity instanceof Player && ClientUtils.isFakePlayer(player)) {
-    //$$             return InteractionResult.CONSUME;
-    //$$         }
-    //$$     }  else {
-    //$$         if ((GcaSetting.openFakePlayerInventory || SettingUtils.openFakePlayerEnderChest(player)) && entity instanceof EntityPlayerMPFake fakePlayer) {
-    //$$             // 打开物品栏
-    //$$             InteractionResult result = this.openInventory(player, fakePlayer);
-    //$$             if (result != InteractionResult.PASS) {
-    //$$                 player.stopUsingItem();
-    //$$                 return result;
-    //$$             }
-    //$$         }
-    //$$     }
-    //$$     return entity.interact(player, hand);
-    //$$ }
-    //#endif
 
     @Unique
     private InteractionResult openInventory(@NotNull Player player, EntityPlayerMPFake fakePlayer) {

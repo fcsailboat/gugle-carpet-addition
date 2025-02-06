@@ -1,5 +1,8 @@
 package dev.dubhe.gugle.carpet.mixin;
 
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import dev.dubhe.gugle.carpet.GcaSetting;
 import dev.dubhe.gugle.carpet.api.tools.text.Color;
 import dev.dubhe.gugle.carpet.api.tools.text.ComponentTranslate;
@@ -17,7 +20,6 @@ import net.minecraft.world.entity.npc.WanderingTrader;
 import net.minecraft.world.entity.npc.WanderingTraderSpawner;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -25,7 +27,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
@@ -50,44 +51,41 @@ abstract class WanderingTraderMixin {
         this.gca$llama = 0;
     }
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/RandomSource;nextInt(I)I"))
-    private int spawn0(@NotNull RandomSource instance, int i) {
-        int result = instance.nextInt(i);
-        if (result > this.spawnChance) {
+    @WrapWithCondition(method = "tick", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/RandomSource;nextInt(I)I"))
+    private boolean spawn0(RandomSource instance, int i) {
+        if (i > this.spawnChance) {
             this.gca$sendMsg(
                 ComponentTranslate.trans(
                     "carpet.rule.wanderingTraderSpawnFailedWarning.tip.02",
                     Color.YELLOW,
                     Style.EMPTY,
                     "i <= %s".formatted(this.spawnChance),
-                    result
+                    i
                 )
             );
         }
-        return result;
+        return true;
     }
 
-    @Redirect(method = "spawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/RandomSource;nextInt(I)I"))
-    private int spawn1(@NotNull RandomSource instance, int i) {
-        int result = instance.nextInt(i);
-        if (result != 0) {
+    @WrapWithCondition(method = "spawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/util/RandomSource;nextInt(I)I"))
+    private boolean spawn1(RandomSource instance, int i) {
+        if (i != 0) {
             this.gca$sendMsg(
                 ComponentTranslate.trans(
                     "carpet.rule.wanderingTraderSpawnFailedWarning.tip.02",
                     Color.YELLOW,
                     Style.EMPTY,
                     "i == 0",
-                    result
+                    i
                 )
             );
         }
-        return result;
+        return true;
     }
 
-    @Contract(pure = true)
-    @Redirect(method = "spawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;getRandomPlayer()Lnet/minecraft/server/level/ServerPlayer;"))
-    private @Nullable ServerPlayer getRandomPlayer(@NotNull ServerLevel instance) {
-        this.gca$player = instance.getRandomPlayer();
+    @WrapOperation(method = "spawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;getRandomPlayer()Lnet/minecraft/server/level/ServerPlayer;"))
+    private @Nullable ServerPlayer getRandomPlayer(ServerLevel instance, @NotNull Operation<ServerPlayer> original) {
+        this.gca$player = original.call(instance);
         return this.gca$player;
     }
 

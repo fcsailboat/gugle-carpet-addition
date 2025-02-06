@@ -10,18 +10,19 @@ import org.spongepowered.asm.mixin.injection.At;
 //$$ import org.spongepowered.asm.mixin.injection.Inject;
 //$$ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 //#elseif MC>=12100
+import net.minecraft.world.item.crafting.RecipeHolder;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.world.entity.player.StackedContents;
 import org.jetbrains.annotations.NotNull;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import net.minecraft.world.item.crafting.RecipeHolder;
 //#else
+//$$ import net.minecraft.world.item.crafting.Recipe;
 //$$ import it.unimi.dsi.fastutil.ints.IntList;
 //$$ import net.minecraft.world.entity.player.StackedContents;
 //$$ import org.jetbrains.annotations.NotNull;
-//$$ import org.spongepowered.asm.mixin.injection.Redirect;
-//$$ import net.minecraft.world.item.crafting.Recipe;
+//$$ import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+//$$ import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 //#endif
 
 @Mixin(ServerPlaceRecipe.class)
@@ -38,9 +39,9 @@ abstract class ServerPlaceRecipeMixin {
         return GcaSetting.betterQuickCrafting ? i - 1 : i;
     }
     //#else
-    //$$ @Redirect(method = "handleRecipeClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/StackedContents;getBiggestCraftableStack(Lnet/minecraft/world/item/crafting/Recipe;Lit/unimi/dsi/fastutil/ints/IntList;)I"))
-    //$$ private int handleRecipeClicked(@NotNull StackedContents instance, Recipe<?> recipe, IntList intList) {
-    //$$     int i = instance.getBiggestCraftableStack(recipe, intList);
+    //$$ @WrapOperation(method = "handleRecipeClicked", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/StackedContents;getBiggestCraftableStack(Lnet/minecraft/world/item/crafting/Recipe;Lit/unimi/dsi/fastutil/ints/IntList;)I"))
+    //$$ private int handleRecipeClicked(StackedContents instance, Recipe<?> recipe, IntList intList, Operation<Integer> original) {
+    //$$     int i = original.call(instance, recipe, intList);
     //$$     return GcaSetting.betterQuickCrafting ? i - 1 : i;
     //$$ }
     //#endif
